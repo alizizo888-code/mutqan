@@ -34,6 +34,18 @@ function render(root,data){
  root.querySelector('[data-radar-orders]').innerHTML=(data.orders||[]).map(function(x){return '<div class="mq-radar-item"><strong>#'+esc(x.id)+' · '+esc(x.type)+'</strong><div class="mq-radar-meta">'+esc(x.status)+' · '+esc(x.priority)+'</div><span class="mq-radar-pill">'+(x.technician_id?'معيّن':'غير معيّن')+'</span>'+(x.technician_id?'':' <button type="button" class="mq-radar-assign" data-order-auto="'+esc(x.id)+'">إسناد تلقائي</button>')+'</div>';}).join('')||'<div class="mq-radar-meta">لا توجد طلبات مفتوحة.</div>';
  initMap(root);upsertMarkers(data);
 }
+function loadOps(root){
+ var url=(window.MUTQAN_RADAR||{}).opsEndpoint;if(!url)return;
+ fetch(url,{credentials:'same-origin',headers:{'X-WP-Nonce':(window.MUTQAN_RADAR||{}).nonce||''}})
+ .then(function(r){return r.json();}).then(function(d){
+  var box=root.querySelector('[data-ops-board]'),a=root.querySelector('[data-ops-alerts]');if(!box)return;
+  if(a)a.textContent=(d.alerts||[]).length?'تنبيهات: '+d.alerts.length:'لا توجد تنبيهات حرجة';
+  box.innerHTML=(d.technicians||[]).map(function(t){
+   var orders=(d.orders||[]).filter(function(o){return parseInt(o.technician_id,10)===parseInt(t.id,10);});
+   return '<div class="mq-ops-tech"><strong>'+esc(t.name)+'</strong><small> '+esc(t.status)+' · '+esc(t.active_orders)+' / '+esc(t.capacity)+'</small><div>'+orders.map(function(o){return '<span class="mq-ops-order">#'+esc(o.id)+' '+esc(o.status)+'</span>';}).join(' ')+'</div></div>';
+  }).join('')||'<small>لا توجد بيانات تشغيلية.</small>';
+ }).catch(function(){});
+}
 function load(root){
  fetch((window.MUTQAN_RADAR||{}).endpoint,{credentials:'same-origin',headers:{'X-WP-Nonce':(window.MUTQAN_RADAR||{}).nonce||''}})
  .then(function(r){return r.json();}).then(function(data){if(data&&data.summary)render(root,data);}).catch(function(){});
@@ -51,7 +63,7 @@ document.addEventListener('DOMContentLoaded',function(){
  document.querySelectorAll('.mq-radar').forEach(function(root){
    var mapBox=root.querySelector('[data-radar-map]');
    if(mapBox)mapBox.addEventListener('mousedown',function(){if(map)map._userMoved=true;});
-   var btn=root.querySelector('[data-radar-refresh]');if(btn)btn.addEventListener('click',function(){load(root);});
+   var btn=root.querySelector('[data-radar-refresh]');if(btn)btn.addEventListener('click',function(){load(root);}); var ob=root.querySelector('[data-ops-load]');if(ob)ob.addEventListener('click',function(){loadOps(root);}); loadOps(root);
    load(root);window.setInterval(function(){load(root);},(window.MUTQAN_RADAR||{}).refreshMs||10000);
  });
 });
