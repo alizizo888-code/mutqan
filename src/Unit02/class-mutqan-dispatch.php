@@ -105,16 +105,16 @@ final class MUTQAN_Dispatch {
         $rows=$wpdb->get_results($wpdb->prepare("SELECT id,lat,lng,status,priority FROM ".MUTQAN_Operations::table()." WHERE technician_id=%d AND status IN ('assigned','accepted','en_route','nearby','arrived','working','waiting_customer') AND lat IS NOT NULL AND lng IS NOT NULL ORDER BY id ASC",$tech_id),ARRAY_A);
         $cur_lat=(float)$tech['lat']; $cur_lng=(float)$tech['lng']; $out=array();
         while($rows){
-            $best_i=0; $best_d=PHP_FLOAT_MAX;
+            $best_i=0; $best_score=PHP_FLOAT_MAX; $best_distance=null;
             foreach($rows as $i=>$row){
                 $d=self::distance_km($cur_lat,$cur_lng,(float)$row['lat'],(float)$row['lng']);
                 if($d===null)$d=PHP_FLOAT_MAX;
                 $priority_weight=array('urgent'=>-100,'high'=>-25,'normal'=>0,'low'=>10);
                 $score=$d+($priority_weight[sanitize_key($row['priority'])]??0);
-                if($score<$best_d){$best_d=$score;$best_i=$i;}
+                if($score<$best_score){$best_score=$score;$best_distance=$d;$best_i=$i;}
             }
             $row=$rows[$best_i]; unset($rows[$best_i]); $rows=array_values($rows);
-            $row['distance_from_previous_km']=$best_d===PHP_FLOAT_MAX?null:round(max(0,$best_d),2);
+            $row['distance_from_previous_km']=$best_distance===null?null:round(max(0,$best_distance),2);
             $out[]=$row; $cur_lat=(float)$row['lat']; $cur_lng=(float)$row['lng'];
         }
         return $out;
