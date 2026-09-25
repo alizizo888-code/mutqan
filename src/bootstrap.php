@@ -10,6 +10,7 @@ require_once MUTQAN_DIR.'src/Unit02/class-mutqan-communications.php';
 require_once MUTQAN_DIR.'src/Unit02/class-mutqan-chat-ui.php';
 require_once MUTQAN_DIR.'src/Unit02/class-mutqan-field-execution.php';
 require_once MUTQAN_DIR.'src/Unit02/class-mutqan-inventory.php';
+require_once MUTQAN_DIR.'src/Unit02/class-mutqan-technician-portal.php';
 require_once MUTQAN_DIR.'src/Unit03/class-mutqan-services.php';
 require_once MUTQAN_DIR.'src/Unit03/class-mutqan-warranty.php';
 require_once MUTQAN_DIR.'src/Unit03/class-mutqan-ratings.php';
