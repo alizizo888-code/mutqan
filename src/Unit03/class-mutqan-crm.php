@@ -1,0 +1,11 @@
+<?php
+defined('ABSPATH') || exit;
+final class MUTQAN_CRM {
+ public static function init(){add_action('rest_api_init',array(__CLASS__,'rest'));}
+ public static function table(){global $wpdb;return $wpdb->prefix.'mutqan_crm';}
+ public static function install(){global $wpdb;require_once ABSPATH.'wp-admin/includes/upgrade.php';$c=$wpdb->get_charset_collate();dbDelta("CREATE TABLE ".self::table()." (id bigint unsigned NOT NULL AUTO_INCREMENT,customer_id bigint unsigned NOT NULL,order_id bigint unsigned NOT NULL DEFAULT 0,type varchar(40) NOT NULL DEFAULT 'note',subject varchar(190) NOT NULL DEFAULT '',body longtext NULL,source varchar(40) NOT NULL DEFAULT 'system',created_by bigint unsigned NOT NULL DEFAULT 0,created_at datetime NOT NULL,PRIMARY KEY(id),KEY customer_id(customer_id),KEY order_id(order_id),KEY type(type)) $c;");}
+ private static function manage(){return current_user_can('mutqan_manage_operations')||current_user_can('mutqan_view_customers')||current_user_can('mutqan_manage_settings');}
+ public static function add($customer_id,$order_id,$type,$subject,$body,$source='system'){global $wpdb;$wpdb->insert(self::table(),array('customer_id'=>(int)$customer_id,'order_id'=>(int)$order_id,'type'=>sanitize_key($type),'subject'=>sanitize_text_field($subject),'body'=>sanitize_textarea_field($body),'source'=>sanitize_key($source),'created_by'=>get_current_user_id(),'created_at'=>current_time('mysql',true)));return (int)$wpdb->insert_id;}
+ public static function rest(){register_rest_route('mutqan/v1','/crm/customers/(?P<id>\d+)',array('methods'=>'GET','permission_callback'=>function(){return self::manage();},'callback'=>function($r){global $wpdb;$id=(int)$r['id'];$orders=$wpdb->get_results($wpdb->prepare("SELECT * FROM ".MUTQAN_Orders::table()." WHERE customer_id=%d ORDER BY id DESC LIMIT 100",$id),ARRAY_A);$notes=$wpdb->get_results($wpdb->prepare("SELECT * FROM ".self::table()." WHERE customer_id=%d ORDER BY id DESC LIMIT 100",$id),ARRAY_A);return rest_ensure_response(array('customer_id'=>$id,'orders'=>$orders,'timeline'=>$notes));}));}
+}
+MUTQAN_CRM::init();
