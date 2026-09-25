@@ -102,6 +102,17 @@ final class MUTQAN_Radar {
             }
         ));
 
+        register_rest_route('mutqan/v1', '/radar/order/(?P<id>\\d+)/candidates', array(
+            'methods' => WP_REST_Server::READABLE,
+            'permission_callback' => function() { return current_user_can('mutqan_manage_operations'); },
+            'callback' => function($r) { $x=MUTQAN_Dispatch::candidates((int)$r['id']); return is_wp_error($x)?$x:rest_ensure_response($x); }
+        ));
+        register_rest_route('mutqan/v1', '/radar/order/(?P<id>\\d+)/auto-assign', array(
+            'methods' => WP_REST_Server::EDITABLE,
+            'permission_callback' => function() { return current_user_can('mutqan_manage_operations'); },
+            'callback' => function($r) { $x=MUTQAN_Dispatch::assign_best((int)$r['id']); return is_wp_error($x)?$x:rest_ensure_response(array('ok'=>true,'order_id'=>(int)$r['id'])); }
+        ));
+
         register_rest_route('mutqan/v1', '/radar/orders', array(
             'methods' => WP_REST_Server::READABLE,
             'permission_callback' => function() {
