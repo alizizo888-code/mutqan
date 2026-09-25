@@ -5,7 +5,7 @@ final class MUTQAN_Theme {
     const OPTION = 'mutqan_theme';
 
     public static function init() {
-        add_action('wp_enqueue_scripts', array(__CLASS__, 'assets'));
+        add_action('wp_enqueue_scripts', array(__CLASS__, 'assets'));\n        add_action('wp_enqueue_scripts', array(__CLASS__, 'ui_assets'), 20);
         add_shortcode('mutqan_app', array(__CLASS__, 'shortcode'));
         add_action('admin_menu', array(__CLASS__, 'menu'));
         add_action('admin_init', array(__CLASS__, 'settings'));
@@ -33,7 +33,7 @@ final class MUTQAN_Theme {
         return wp_parse_args((array)get_option(self::OPTION, array()), self::defaults());
     }
 
-    public static function assets() {
+    public static function ui_assets() {\n        wp_enqueue_style('mutqan-ui', plugins_url('../UI/assets/mutqan-ui.css', MUTQAN_FILE), array('mutqan-theme'), MUTQAN_VERSION);\n        wp_enqueue_script('mutqan-ui', plugins_url('../UI/assets/mutqan-ui.js', MUTQAN_FILE), array(), MUTQAN_VERSION, true);\n    }\n\n    public static function assets() {
         wp_register_style('mutqan-theme', plugins_url('assets/mutqan-theme.css', MUTQAN_FILE), array(), MUTQAN_VERSION);
         wp_enqueue_style('mutqan-theme');
 
