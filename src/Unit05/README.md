@@ -1,5 +1,2 @@
 # Unit 05 — Marketing & Loyalty
-
-Offers, discounts, coupons, loyalty, campaigns, referrals, segmentation, multichannel notifications, analytics, AI marketing, permissions, audit, and testing.
-
-Messaging providers are external configuration dependencies.
+Implemented campaign storage foundation. Messaging providers, coupon/loyalty automation and campaign delivery remain controlled extensions.
