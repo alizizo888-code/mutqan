@@ -49,6 +49,7 @@ final class MUTQAN_Theme {
     }
 
     public static function shortcode($atts=array()) {
+        return MUTQAN_App::render();
         $t = self::get();
         $role = 'visitor';
         if (is_user_logged_in()) {
