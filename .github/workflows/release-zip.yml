@@ -1,0 +1,29 @@
+name: MUTQAN Release ZIP
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+      - name: PHP syntax check
+        run: |
+          set -e
+          find . -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Package plugin
+        run: |
+          set -e
+          rm -rf build
+          mkdir -p build/mutqan
+          rsync -a --exclude='.git' --exclude='.github' ./ build/mutqan/
+          cd build
+          zip -qr mutqan-unified-0.2.0.zip mutqan
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mutqan-unified-0.2.0
+          path: build/mutqan-unified-0.2.0.zip
