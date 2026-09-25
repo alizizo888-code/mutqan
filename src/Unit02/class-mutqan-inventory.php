@@ -14,25 +14,27 @@ final class MUTQAN_Inventory {
   if(class_exists('MUTQAN_Fleet')) $vehicle_id=(int)$wpdb->get_var($wpdb->prepare("SELECT id FROM ".MUTQAN_Fleet::table()." WHERE technician_id=%d AND status='active' ORDER BY id DESC LIMIT 1",$technician_id));
   $normalized=array();
   foreach($items as $item){$iid=is_array($item)?absint($item['inventory_id']??0):absint($item);$qty=is_array($item)?max(0,(float)($item['quantity']??1)):1;if($iid&&$qty>0)$normalized[$iid]=($normalized[$iid]??0)+$qty;}
-  foreach($normalized as $iid=>$qty){
-   $inv=$wpdb->get_row($wpdb->prepare("SELECT * FROM ".self::table()." WHERE id=%d FOR UPDATE",$iid),ARRAY_A);
-   if(!$inv)return new WP_Error('inventory_not_found','الصنف غير موجود.',array('status'=>404));
-   $old=(float)$wpdb->get_var($wpdb->prepare("SELECT quantity FROM ".self::usage_table()." WHERE order_id=%d AND inventory_id=%d",$order_id,$iid));
-   $delta=$qty-$old;if(abs($delta)<0.00001)continue;
-   $stock=$vehicle_id?(float)$wpdb->get_var($wpdb->prepare("SELECT quantity FROM ".MUTQAN_Fleet::stock_table()." WHERE vehicle_id=%d AND inventory_id=%d",$vehicle_id,$iid)):0;
-   if($delta>0 && $stock<$delta)return new WP_Error('vehicle_stock_insufficient','كمية القطعة في المركبة غير كافية: '.$inv['name'],array('status'=>400));
-   $available=(float)$inv['quantity']-(float)$inv['reserved'];
-   if($delta>0 && $available<$delta)return new WP_Error('central_stock_insufficient','المخزون المركزي غير كافٍ: '.$inv['name'],array('status'=>400));
-   if($delta>0){
-    $wpdb->query($wpdb->prepare("UPDATE ".self::table()." SET quantity=quantity-%f,reserved=GREATEST(reserved-%f,0),updated_at=%s WHERE id=%d",$delta,$delta,current_time('mysql',true),$iid));
-    if($vehicle_id)$wpdb->query($wpdb->prepare("UPDATE ".MUTQAN_Fleet::stock_table()." SET quantity=quantity-%f,updated_at=%s WHERE vehicle_id=%d AND inventory_id=%d",$delta,current_time('mysql',true),$vehicle_id,$iid));
-   }else{
-    $back=abs($delta);$wpdb->query($wpdb->prepare("UPDATE ".self::table()." SET quantity=quantity+%f,updated_at=%s WHERE id=%d",$back,current_time('mysql',true),$iid));
-    if($vehicle_id)$wpdb->query($wpdb->prepare("UPDATE ".MUTQAN_Fleet::stock_table()." SET quantity=quantity+%f,updated_at=%s WHERE vehicle_id=%d AND inventory_id=%d",$back,current_time('mysql',true),$vehicle_id,$iid));
+  $existing_rows=$wpdb->get_results($wpdb->prepare("SELECT inventory_id,quantity FROM ".self::usage_table()." WHERE order_id=%d",$order_id),ARRAY_A);
+  $existing=array();foreach($existing_rows as $row)$existing[(int)$row['inventory_id']=(float)$row['quantity'];
+  $deltas=array_unique(array_merge(array_keys($existing),array_keys($normalized)));
+  $wpdb->query('START TRANSACTION');
+  try{
+   foreach($deltas as $iid){
+    $qty=(float)($normalized[$iid]??0);$old=(float)($existing[$iid]??0);$delta=$qty-$old;
+    if(abs($delta)<0.00001)continue;
+    $inv=$wpdb->get_row($wpdb->prepare("SELECT * FROM ".self::table()." WHERE id=%d FOR UPDATE",$iid),ARRAY_A);
+    if(!$inv)throw new Exception('inventory_not_found');
+    $stock=$vehicle_id?(float)$wpdb->get_var($wpdb->prepare("SELECT quantity FROM ".MUTQAN_Fleet::stock_table()." WHERE vehicle_id=%d AND inventory_id=%d FOR UPDATE",$vehicle_id,$iid)):0;
+    if($delta>0 && $stock<$delta)throw new Exception('vehicle_stock_insufficient');
+    $available=(float)$inv['quantity']-(float)$inv['reserved'];if($delta>0&&$available<$delta)throw new Exception('central_stock_insufficient');
+    if($delta>0){$wpdb->query($wpdb->prepare("UPDATE ".self::table()." SET quantity=quantity-%f,reserved=GREATEST(reserved-%f,0),updated_at=%s WHERE id=%d",$delta,$delta,current_time('mysql',true),$iid));if($vehicle_id)$wpdb->query($wpdb->prepare("UPDATE ".MUTQAN_Fleet::stock_table()." SET quantity=quantity-%f,updated_at=%s WHERE vehicle_id=%d AND inventory_id=%d",$delta,current_time('mysql',true),$vehicle_id,$iid));}
+    else{$back=abs($delta);$wpdb->query($wpdb->prepare("UPDATE ".self::table()." SET quantity=quantity+%f,updated_at=%s WHERE id=%d",$back,current_time('mysql',true),$iid));if($vehicle_id)$wpdb->query($wpdb->prepare("UPDATE ".MUTQAN_Fleet::stock_table()." SET quantity=quantity+%f,updated_at=%s WHERE vehicle_id=%d AND inventory_id=%d",$back,current_time('mysql',true),$vehicle_id,$iid));}
+    if($old>0&&$qty>0)$wpdb->update(self::usage_table(),array('quantity'=>$qty,'vehicle_id'=>$vehicle_id,'updated_at'=>current_time('mysql',true)),array('order_id'=>$order_id,'inventory_id'=>$iid));
+    elseif($old>0&&$qty<=0)$wpdb->delete(self::usage_table(),array('order_id'=>$order_id,'inventory_id'=>$iid));
+    else if($qty>0)$wpdb->insert(self::usage_table(),array('order_id'=>$order_id,'technician_id'=>$technician_id,'vehicle_id'=>$vehicle_id,'inventory_id'=>$iid,'quantity'=>$qty,'unit_cost'=>(float)$inv['unit_cost'],'created_at'=>current_time('mysql',true),'updated_at'=>current_time('mysql',true)));
    }
-   if($old>0)$wpdb->update(self::usage_table(),array('quantity'=>$qty,'vehicle_id'=>$vehicle_id,'updated_at'=>current_time('mysql',true)),array('order_id'=>$order_id,'inventory_id'=>$iid));
-   else $wpdb->insert(self::usage_table(),array('order_id'=>$order_id,'technician_id'=>$technician_id,'vehicle_id'=>$vehicle_id,'inventory_id'=>$iid,'quantity'=>$qty,'unit_cost'=>(float)$inv['unit_cost'],'created_at'=>current_time('mysql',true),'updated_at'=>current_time('mysql',true)));
-  }
+   $wpdb->query('COMMIT');
+  }catch(Exception $e){$wpdb->query('ROLLBACK');$map=array('inventory_not_found'=>array('inventory_not_found','الصنف غير موجود.',404),'vehicle_stock_insufficient'=>array('vehicle_stock_insufficient','كمية القطعة في المركبة غير كافية.',400),'central_stock_insufficient'=>array('central_stock_insufficient','المخزون المركزي غير كافٍ.',400));$x=$map[$e->getMessage()]??array('inventory_transaction_failed','تعذر تحديث المخزون.',500);return new WP_Error($x[0],$x[1],array('status'=>$x[2]));}
   MUTQAN_Audit::log('parts_consumed','order',(int)$order_id,array('technician_id'=>$technician_id,'vehicle_id'=>$vehicle_id,'items'=>$normalized));
   return true;
  }
