@@ -4,8 +4,10 @@ defined('ABSPATH') || exit;
 final class MUTQAN_App {
     public static function init() {
         add_shortcode('mutqan_app', array(__CLASS__,'render')); add_action('wp_enqueue_scripts', array(__CLASS__,'assets'));
-        add_action('rest_api_init', array(__CLASS__,'rest'));
+        add_action('rest_api_init', array(__CLASS__,'rest')); add_action('wp_enqueue_scripts',array(__CLASS__,'ai_assets'),50);
     }
+
+    public static function ai_assets(){ if(!is_singular())return; global $post; if(!$post||!has_shortcode($post->post_content,'mutqan_app'))return; wp_enqueue_style('mutqan-ai',plugins_url('src/Unit06/assets/mutqan-ai.css',MUTQAN_FILE),array('mutqan-ui'),MUTQAN_VERSION); wp_enqueue_script('mutqan-ai',plugins_url('src/Unit06/assets/mutqan-ai.js',MUTQAN_FILE),array(),MUTQAN_VERSION,true); wp_localize_script('mutqan-ai','MQAI',array('root'=>esc_url_raw(rest_url('mutqan/v1')),'nonce'=>wp_create_nonce('wp_rest'))); }
 
     public static function assets() { wp_enqueue_style('mutqan-customer',plugins_url('src/Unit03/assets/mutqan-customer.css',MUTQAN_FILE),array('mutqan-ui'),MUTQAN_VERSION); wp_enqueue_script('mutqan-customer',plugins_url('src/Unit03/assets/mutqan-customer.js',MUTQAN_FILE),array(),MUTQAN_VERSION,true); wp_localize_script('mutqan-customer','mqCustomer',array('root'=>esc_url_raw(rest_url('mutqan/v1')),'loggedIn'=>is_user_logged_in())); }
 
@@ -47,7 +49,7 @@ final class MUTQAN_App {
                     <div class="mq-hero"><h2>بوابة الشريك</h2><p>تابع الطلبات والفرص المرتبطة بشراكتك.</p><button type="button">عرض الطلبات</button></div>
                 <?php endif; ?>
             </section>
-            <nav class="mq-bottom-nav"><?php foreach ((array)$cfg['nav'] as $item): ?><a href="#" data-mq-nav="<?php echo esc_attr($item); ?>"><?php echo esc_html(self::nav_label($item)); ?></a><?php endforeach; ?></nav>
+            <section class="mq-ai"><strong>مساعد مُتقِن AI</strong><textarea data-mq-ai-input placeholder="اكتب سؤالك..."></textarea><button type="button" data-mq-ai>إرسال</button><div class="mq-ai-output" data-mq-ai-output></div></section><nav class="mq-bottom-nav"><?php foreach ((array)$cfg['nav'] as $item): ?><a href="#" data-mq-nav="<?php echo esc_attr($item); ?>"><?php echo esc_html(self::nav_label($item)); ?></a><?php endforeach; ?></nav>
         </div>
         <?php return ob_get_clean();
     }
