@@ -19,6 +19,7 @@ require_once MUTQAN_DIR.'src/Unit04/class-mutqan-billing.php';
 require_once MUTQAN_DIR.'src/Unit04/class-mutqan-wallets.php';
 require_once MUTQAN_DIR.'src/Unit04/class-mutqan-commissions.php';
 require_once MUTQAN_DIR.'src/Unit04/class-mutqan-advances.php';
+require_once MUTQAN_DIR.'src/Unit04/class-mutqan-financial-reports.php';
 require_once MUTQAN_DIR.'src/Unit05/class-mutqan-marketing.php';
 require_once MUTQAN_DIR.'src/Unit05/class-mutqan-promotions.php';
 require_once MUTQAN_DIR.'src/Unit06/class-mutqan-system.php';
