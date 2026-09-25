@@ -34,7 +34,8 @@ final class MUTQAN_Theme {
     }
 
     public static function ui_assets() {
-        wp_enqueue_style('mutqan-ui', plugins_url('src/UI/assets/mutqan-ui.css', MUTQAN_FILE), array('mutqan-theme'), MUTQAN_VERSION);\n        wp_enqueue_script('mutqan-ui', plugins_url('src/UI/assets/mutqan-ui.js', MUTQAN_FILE), array(), MUTQAN_VERSION, true);
+        wp_enqueue_style('mutqan-ui', plugins_url('src/UI/assets/mutqan-ui.css', MUTQAN_FILE), array('mutqan-theme'), MUTQAN_VERSION);
+        wp_enqueue_script('mutqan-ui', plugins_url('src/UI/assets/mutqan-ui.js', MUTQAN_FILE), array(), MUTQAN_VERSION, true);
     }
 
     public static function assets() {
