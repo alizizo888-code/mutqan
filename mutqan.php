@@ -16,6 +16,7 @@ require_once MUTQAN_DIR . 'src/Unit01/class-mutqan-users.php';
 require_once MUTQAN_DIR . 'src/Unit01/class-mutqan-audit.php';
 require_once MUTQAN_DIR . 'src/Unit01/class-mutqan-admin.php';
 require_once MUTQAN_DIR . 'src/Unit01/bootstrap.php';
+require_once MUTQAN_DIR . 'src/bootstrap.php';
 
 register_activation_hook(MUTQAN_FILE, array('MUTQAN_Unit01', 'activate'));
 
