@@ -9,7 +9,7 @@ final class MUTQAN_App {
 
     public static function ai_assets(){ if(!is_singular())return; global $post; if(!$post||!has_shortcode($post->post_content,'mutqan_app'))return; wp_enqueue_style('mutqan-ai',plugins_url('src/Unit06/assets/mutqan-ai.css',MUTQAN_FILE),array('mutqan-ui'),MUTQAN_VERSION); wp_enqueue_script('mutqan-ai',plugins_url('src/Unit06/assets/mutqan-ai.js',MUTQAN_FILE),array(),MUTQAN_VERSION,true); wp_localize_script('mutqan-ai','MQAI',array('root'=>esc_url_raw(rest_url('mutqan/v1')),'nonce'=>wp_create_nonce('wp_rest'))); }
 
-    public static function assets() { wp_enqueue_style('mutqan-customer',plugins_url('src/Unit03/assets/mutqan-customer.css',MUTQAN_FILE),array('mutqan-ui'),MUTQAN_VERSION); wp_enqueue_script('mutqan-customer',plugins_url('src/Unit03/assets/mutqan-customer.js',MUTQAN_FILE),array(),MUTQAN_VERSION,true); wp_localize_script('mutqan-customer','mqCustomer',array('root'=>esc_url_raw(rest_url('mutqan/v1')),'loggedIn'=>is_user_logged_in())); }
+    public static function assets() { wp_enqueue_style('mutqan-customer',plugins_url('src/Unit03/assets/mutqan-customer.css',MUTQAN_FILE),array('mutqan-ui'),MUTQAN_VERSION); wp_enqueue_script('mutqan-customer',plugins_url('src/Unit03/assets/mutqan-customer.js',MUTQAN_FILE),array(),MUTQAN_VERSION,true); wp_localize_script('mutqan-customer','mqCustomer',array('root'=>esc_url_raw(rest_url('mutqan/v1')),'loggedIn'=>is_user_logged_in(),'nonce'=>wp_create_nonce('wp_rest'))); }
 
     public static function role() {
         if (!is_user_logged_in()) return 'visitor';
