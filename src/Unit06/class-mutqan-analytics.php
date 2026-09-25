@@ -3,7 +3,7 @@ defined('ABSPATH') || exit;
 
 final class MUTQAN_Analytics {
  public static function init(){add_action('rest_api_init',array(__CLASS__,'rest'));add_action('admin_menu',array(__CLASS__,'menu'),40);}
- private static function can(){return current_user_can('mutqan_manage_operations')||current_user_can('mutqan_manage_finance')||current_user_can('mutqan_view_audit');}
+ private static function can(){return current_user_can('mutqan_manage_operations')||current_user_can('mutqan_manage_finance')||current_user_can('mutqan_view_audit')||current_user_can('mutqan_view_analytics');}
  public static function summary($from,$to){
   global $wpdb;
   $ops=MUTQAN_Operations::table();
@@ -26,7 +26,7 @@ final class MUTQAN_Analytics {
   return array('from'=>$from,'to'=>$to,'orders'=>$orders,'completed'=>$completed,'cancelled'=>$cancelled,'revenue'=>$revenue,'paid'=>$paid,'completion_rate'=>$orders?round($completed/$orders*100,2):0,'statuses'=>$statuses,'daily'=>$daily,'technicians'=>$tech,'quality'=>$quality);
  }
  public static function rest(){register_rest_route('mutqan/v1','/analytics/summary',array('methods'=>WP_REST_Server::READABLE,'permission_callback'=>function(){return self::can();},'callback'=>function($r){$from=$r->get_param('from')?:gmdate('Y-m-01');$to=$r->get_param('to')?:gmdate('Y-m-d');return rest_ensure_response(self::summary($from,$to));}));}
- public static function menu(){if(!self::can())return;add_submenu_page('mutqan-finance','MUTQAN التحليلات','التحليلات','mutqan_view_audit','mutqan-analytics',array(__CLASS__,'page'));}
+ public static function menu(){if(!self::can())return;add_submenu_page('mutqan-finance','MUTQAN التحليلات','التحليلات','mutqan_view_analytics','mutqan-analytics',array(__CLASS__,'page'));}
  public static function page(){
   if(!self::can())wp_die('غير مصرح');
   $s=self::summary(gmdate('Y-m-01'),gmdate('Y-m-d'));
