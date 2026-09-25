@@ -98,6 +98,28 @@ final class MUTQAN_Dispatch {
         return true;
     }
 
+    public static function optimize_route($tech_id){
+        global $wpdb;
+        $tech=self::technician_snapshot($tech_id);
+        if(!$tech)return new WP_Error('technician_not_found','Technician not found.');
+        $rows=$wpdb->get_results($wpdb->prepare("SELECT id,lat,lng,status,priority FROM ".MUTQAN_Operations::table()." WHERE technician_id=%d AND status IN ('assigned','accepted','en_route','nearby','arrived','working','waiting_customer') AND lat IS NOT NULL AND lng IS NOT NULL ORDER BY id ASC",$tech_id),ARRAY_A);
+        $cur_lat=(float)$tech['lat']; $cur_lng=(float)$tech['lng']; $out=array();
+        while($rows){
+            $best_i=0; $best_d=PHP_FLOAT_MAX;
+            foreach($rows as $i=>$row){
+                $d=self::distance_km($cur_lat,$cur_lng,(float)$row['lat'],(float)$row['lng']);
+                if($d===null)$d=PHP_FLOAT_MAX;
+                $priority_weight=array('urgent'=>-100,'high'=>-25,'normal'=>0,'low'=>10);
+                $score=$d+($priority_weight[sanitize_key($row['priority'])]??0);
+                if($score<$best_d){$best_d=$score;$best_i=$i;}
+            }
+            $row=$rows[$best_i]; unset($rows[$best_i]); $rows=array_values($rows);
+            $row['distance_from_previous_km']=$best_d===PHP_FLOAT_MAX?null:round(max(0,$best_d),2);
+            $out[]=$row; $cur_lat=(float)$row['lat']; $cur_lng=(float)$row['lng'];
+        }
+        return $out;
+    }
+
     public static function rest(){
         register_rest_route('mutqan/v1','/technicians/me/status',array(
             'methods'=>WP_REST_Server::EDITABLE,'permission_callback'=>function(){return current_user_can('mutqan_edit_own_profile') && in_array('mutqan_technician',(array)wp_get_current_user()->roles,true);},
@@ -120,6 +142,10 @@ final class MUTQAN_Dispatch {
         register_rest_route('mutqan/v1','/dispatch/assign/(?P<id>\d+)',array(
             'methods'=>WP_REST_Server::EDITABLE,'permission_callback'=>function(){return current_user_can('mutqan_manage_operations');},
             'callback'=>function($r){$p=$r->get_json_params();$ok=self::assign((int)$r['id'],absint($p['technician_id']??0),false);return is_wp_error($ok)?$ok:rest_ensure_response(array('ok'=>true,'order_id'=>(int)$r['id'],'technician_id'=>absint($p['technician_id'])));}
+        ));
+        register_rest_route('mutqan/v1','/technicians/me/route',array(
+            'methods'=>WP_REST_Server::READABLE,'permission_callback'=>function(){return current_user_can('mutqan_edit_own_profile')&&in_array('mutqan_technician',(array)wp_get_current_user()->roles,true);},
+            'callback'=>function(){ $x=self::optimize_route(get_current_user_id()); return is_wp_error($x)?$x:rest_ensure_response(array('technician_id'=>get_current_user_id(),'stops'=>$x)); }
         ));
         register_rest_route('mutqan/v1','/dispatch/auto/(?P<id>\d+)',array(
             'methods'=>WP_REST_Server::EDITABLE,'permission_callback'=>function(){return current_user_can('mutqan_manage_operations');},
