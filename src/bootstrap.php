@@ -17,6 +17,7 @@ require_once MUTQAN_DIR.'src/Unit03/class-mutqan-pricing.php';
 require_once MUTQAN_DIR.'src/Unit04/class-mutqan-finance.php';
 require_once MUTQAN_DIR.'src/Unit04/class-mutqan-billing.php';
 require_once MUTQAN_DIR.'src/Unit04/class-mutqan-wallets.php';
+require_once MUTQAN_DIR.'src/Unit04/class-mutqan-wallet-topup-requests.php';
 require_once MUTQAN_DIR.'src/Unit04/class-mutqan-commissions.php';
 require_once MUTQAN_DIR.'src/Unit04/class-mutqan-advances.php';
 require_once MUTQAN_DIR.'src/Unit04/class-mutqan-financial-reports.php';
@@ -39,6 +40,7 @@ register_activation_hook(MUTQAN_FILE,function(){
     MUTQAN_Finance::install();
     MUTQAN_Billing::install();
     MUTQAN_Wallets::install();
+    MUTQAN_Wallet_Topup_Requests::install();
     MUTQAN_Commissions::install();
     MUTQAN_Advances::install();
     MUTQAN_Warranty::install();
