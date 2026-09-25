@@ -1,68 +1,33 @@
 <?php
 defined('ABSPATH') || exit;
-
 final class MUTQAN_App {
-    public static function init() {
-        add_shortcode('mutqan_app', array(__CLASS__,'render')); add_action('wp_enqueue_scripts', array(__CLASS__,'assets'));
-        add_action('rest_api_init', array(__CLASS__,'rest')); add_action('wp_enqueue_scripts',array(__CLASS__,'ai_assets'),50);
-    }
-
-    public static function ai_assets(){ if(!is_singular())return; global $post; if(!$post||!has_shortcode($post->post_content,'mutqan_app'))return; wp_enqueue_style('mutqan-ai',plugins_url('src/Unit06/assets/mutqan-ai.css',MUTQAN_FILE),array('mutqan-ui'),MUTQAN_VERSION); wp_enqueue_script('mutqan-ai',plugins_url('src/Unit06/assets/mutqan-ai.js',MUTQAN_FILE),array(),MUTQAN_VERSION,true); wp_localize_script('mutqan-ai','MQAI',array('root'=>esc_url_raw(rest_url('mutqan/v1')),'nonce'=>wp_create_nonce('wp_rest'),'loggedIn'=>is_user_logged_in())); }
-
-    public static function assets() { wp_enqueue_style('mutqan-customer',plugins_url('src/Unit03/assets/mutqan-customer.css',MUTQAN_FILE),array('mutqan-ui'),MUTQAN_VERSION); wp_enqueue_style('leaflet','https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',array(),'1.9.4'); wp_enqueue_script('leaflet','https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',array(), '1.9.4', true); wp_enqueue_script('mutqan-customer',plugins_url('src/Unit03/assets/mutqan-customer.js',MUTQAN_FILE),array('leaflet'),MUTQAN_VERSION,true); wp_localize_script('mutqan-customer','mqCustomer',array('root'=>esc_url_raw(rest_url('mutqan/v1')),'loggedIn'=>is_user_logged_in(),'nonce'=>wp_create_nonce('wp_rest'))); }
-
-    public static function role() {
-        if (!is_user_logged_in()) return 'visitor';
-        $u=wp_get_current_user();
-        foreach (array('mutqan_owner','mutqan_site_admin','mutqan_operations','mutqan_technician','mutqan_customer','mutqan_partner') as $role) {
-            if (in_array($role,(array)$u->roles,true)) return $role;
-        }
-        return 'visitor';
-    }
-
-    public static function render() {
-        $role=self::role();
-        $cfg=MUTQAN_Registry::role_config($role);
-        $title=array(
-            'visitor'=>'مرحبًا بك في مُتقِن',
-            'mutqan_customer'=>'أهلاً بك في مُتقِن 👋',
-            'mutqan_technician'=>'لوحة الفني',
-            'mutqan_operations'=>'غرفة العمليات',
-            'mutqan_site_admin'=>'لوحة الإشراف',
-            'mutqan_owner'=>'مركز تحكم مُتقِن',
-            'mutqan_partner'=>'بوابة شريك المهنة'
-        );
-        ob_start(); ?>
-        <div class="mq-app mq-role-<?php echo esc_attr($role); ?>" data-role="<?php echo esc_attr($role); ?>">
-            <section class="mq-surface">
-                <div class="mq-app-head">
-                    <div><span class="mq-chip">مُتقِن</span><h1><?php echo esc_html($title[$role]??'مُتقِن'); ?></h1><p>نفس الهوية، صلاحيات ومهام مختلفة حسب الدور.</p></div>
-                </div>
-                <?php if ($role==='visitor' || $role==='mutqan_customer'): ?>
-                    <div class="mq-hero"><h2>خدمتك تبدأ من هنا</h2><p>اختر التخصص، ارفع الطلب، وحدد موقع الخدمة.</p><button type="button" data-mq-action="new-order">ابدأ طلب خدمة ←</button><div class="mq-portal-slot"><?php echo do_shortcode("[mutqan_customer_portal]"); ?></div></div>
-                    <div class="mq-grid"><button class="mq-service">❄️<b>تكييف وتبريد</b><small>صيانة وتركيب وفحص</small></button><button class="mq-service">⚡<b>كهرباء</b><small>أعمال وصيانة</small></button><button class="mq-service">🔧<b>سباكة</b><small>كشف وإصلاح وتركيب</small></button><button class="mq-service">🛠️<b>صيانة عامة</b><small>حلول متعددة</small></button></div>
-                <?php elseif ($role==='mutqan_technician'): ?>
-                    <div class="mq-stat-row"><div><b>—</b><small>مهام اليوم</small></div><div><b>—</b><small>طلبات قريبة</small></div><div><b>—</b><small>دخل اليوم</small></div></div><div class="mq-hero"><h2>مركز الفني</h2><p>اقبل الطلب، ابدأ التحرك، أكد الوصول ثم نفّذ الخدمة.</p></div><?php echo do_shortcode('[mutqan_technician_portal]'); ?>
-                <?php elseif ($role==='mutqan_operations' || $role==='mutqan_site_admin' || $role==='mutqan_owner'): ?>
-                    <div class="mq-stat-row"><div><b>12</b><small>طلبات جديدة</small></div><div><b>8</b><small>فنيون متاحون</small></div><div><b>4</b><small>مهام عاجلة</small></div></div><div class="mq-hero"><h2>الرادار التشغيلي</h2><p>الطلبات والفنيون والحالات في شاشة واحدة.</p><button type="button" data-mq-action="radar">فتح الرادار ←</button></div>
-                <?php else: ?>
-                    <div class="mq-hero"><h2>بوابة الشريك</h2><p>تابع الطلبات والفرص المرتبطة بشراكتك.</p><button type="button">عرض الطلبات</button></div>
-                <?php endif; ?>
-            </section>
-            <section class="mq-ai"><strong>مساعد مُتقِن AI</strong><textarea data-mq-ai-input placeholder="اكتب سؤالك..."></textarea><button type="button" data-mq-ai>إرسال</button><div class="mq-ai-output" data-mq-ai-output></div></section><nav class="mq-bottom-nav"><?php foreach ((array)$cfg['nav'] as $item): ?><a href="#" data-mq-nav="<?php echo esc_attr($item); ?>"><?php echo esc_html(self::nav_label($item)); ?></a><?php endforeach; ?></nav>
-        </div>
-        <?php return ob_get_clean();
-    }
-
-    private static function nav_label($key) {
-        $map=array('home'=>'الرئيسية','orders'=>'طلباتي','offers'=>'العروض','account'=>'حسابي','tasks'=>'المهام','wallet'=>'المحفظة','radar'=>'الرادار','operations'=>'العمليات','users'=>'المستخدمون','settings'=>'الإعدادات','audit'=>'التدقيق','services'=>'الخدمات','help'=>'المساعدة');
-        return $map[$key]??$key;
-    }
-
-    public static function rest() {
-        register_rest_route('mutqan/v1','/ui-config',array('methods'=>'GET','permission_callback'=>'__return_true','callback'=>function(){
-            $role=self::role(); return rest_ensure_response(array('role'=>$role,'theme'=>MUTQAN_Theme::get(),'registry'=>MUTQAN_Registry::role_config($role)));
-        }));
-    }
+ const CATALOG_OPTION='mutqan_service_catalog';
+ public static function init(){add_shortcode('mutqan_app',array(__CLASS__,'render'));add_action('wp_enqueue_scripts',array(__CLASS__,'assets'));add_action('admin_menu',array(__CLASS__,'admin_menu'),30);add_action('admin_post_mutqan_create_pages',array(__CLASS__,'create_pages'));add_action('init',array(__CLASS__,'seed'),6);add_action('rest_api_init',array(__CLASS__,'rest'));}
+ public static function seed(){if(!get_option(self::CATALOG_OPTION,false))update_option(self::CATALOG_OPTION,self::catalog_defaults(),false);}
+ public static function assets(){if(!is_singular())return;global $post;if(!$post||!has_shortcode($post->post_content,'mutqan_app'))return;wp_enqueue_style('mutqan-ui',plugins_url('src/UI/assets/mutqan-ui.css',MUTQAN_FILE),array(),MUTQAN_VERSION);wp_enqueue_script('mutqan-ui',plugins_url('src/UI/assets/mutqan-ui.js',MUTQAN_FILE),array(),MUTQAN_VERSION,true);}
+ public static function role(){if(!is_user_logged_in())return'visitor';$u=wp_get_current_user();foreach(array('mutqan_owner','mutqan_site_admin','mutqan_operations','mutqan_technician','mutqan_customer','mutqan_partner') as $r)if(in_array($r,(array)$u->roles,true))return$r;return'visitor';}
+ private static function view_role($v){$a=self::role();return $a==='mutqan_owner'&&in_array($v,array('customer','technician','operations','site_admin','owner'),true)?'mutqan_'.$v:$a;}
+ public static function render($atts=array()){ $atts=shortcode_atts(array('view'=>'auto'),$atts);$role=self::view_role(sanitize_key($atts['view']));$actual=self::role();$nav=self::nav($role);$titles=self::titles();$catalog=self::catalog();ob_start(); ?>
+<div class="mq-shell" data-role="<?php echo esc_attr($role); ?>">
+<aside class="mq-sidebar"><div class="mq-brand"><div class="mq-logo">مُتقِن</div><small><?php echo esc_html($titles[$role]['subtitle']); ?></small></div><nav class="mq-menu"><?php foreach($nav as $k=>$v): ?><a href="#<?php echo esc_attr($k); ?>" data-mq-route="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></a><?php endforeach; ?></nav><div class="mq-side-footer"><a href="#settings" data-mq-route="settings">الإعدادات والتحرير</a></div></aside>
+<main class="mq-main"><header class="mq-topbar"><button class="mq-menu-toggle" data-mq-toggle>☰</button><div><strong><?php echo esc_html($titles[$role]['title']); ?></strong><span><?php echo esc_html($titles[$role]['subtitle']); ?></span></div><div class="mq-user"><?php echo is_user_logged_in()?esc_html(wp_get_current_user()->display_name):'زائر'; ?></div></header>
+<div class="mq-content">
+<section class="mq-page" data-mq-page="home"><div class="mq-welcome"><span>مُتقِن</span><h1><?php echo esc_html($titles[$role]['title']); ?></h1><p>نظام واحد مترابط، وليس صفحات منفصلة.</p></div><?php self::dashboard($role); ?></section>
+<section class="mq-page" data-mq-page="services"><h2>الخدمات</h2><p class="mq-muted">افتح المجال ثم اختر الخدمة الفرعية.</p><div class="mq-service-tree"><?php foreach($catalog as $g): ?><article class="mq-service-group"><button class="mq-group-head" data-mq-expand type="button"><?php echo esc_html($g['icon'].' '.$g['name']); ?><span>＋</span></button><div class="mq-subservices"><?php foreach($g['items'] as $i): ?><button class="mq-subservice" type="button"><?php echo esc_html($i['name']); ?></button><?php endforeach; ?></div></article><?php endforeach; ?></div></section>
+<section class="mq-page" data-mq-page="orders"><h2>الطلبات</h2><div class="mq-panel">مساحة الطلبات والمهام مرتبطة بوحدة العمليات والصلاحيات.</div></section>
+<section class="mq-page" data-mq-page="offers"><h2>العروض والخصومات</h2><div class="mq-card-grid"><div class="mq-card"><b>العروض</b><span>تدار من لوحة المحتوى.</span></div><div class="mq-card"><b>الخصومات</b><span>تدار من لوحة التسويق.</span></div></div></section>
+<section class="mq-page" data-mq-page="radar"><h2>الخريطة الحية والرادار</h2><div class="mq-radar-placeholder">هذه مساحة موحدة للرادار، الفنيين، العملاء، الطلبات والأسطول.</div></section>
+<section class="mq-page" data-mq-page="settings"><h2>الإعدادات والتحرير</h2><div class="mq-card"><b>مركز إدارة النظام</b><span>من هنا ترتبط القوالب والصفحات والبيانات والصلاحيات بالوحدات الأساسية.</span><?php if(in_array($actual,array('mutqan_owner','mutqan_site_admin'),true)): ?><div class="mq-admin-links"><a href="<?php echo esc_url(admin_url('admin.php?page=mutqan-interfaces')); ?>">صفحات الأنظمة</a><a href="<?php echo esc_url(admin_url('admin.php?page=mutqan-registry')); ?>">السجل والقوالب</a><a href="<?php echo esc_url(admin_url('admin.php?page=mutqan-permissions')); ?>">الصلاحيات</a></div><?php endif; ?></div></section>
+</div><nav class="mq-mobile-nav"><?php foreach($nav as $k=>$v): ?><a href="#<?php echo esc_attr($k); ?>" data-mq-route="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></a><?php endforeach; ?><a href="#settings" data-mq-route="settings">إعدادات</a></nav></main></div>
+<?php return ob_get_clean();}
+ private static function dashboard($r){if($r==='mutqan_customer'||$r==='visitor')echo'<div class="mq-card-grid"><button class="mq-card" data-mq-route="services"><b>الخدمات</b><span>التكييف، التبريد، الكهرباء، السباكة، الصيانة وغيرها.</span></button><button class="mq-card" data-mq-route="offers"><b>العروض</b><span>العروض والخصومات.</span></button><button class="mq-card" data-mq-route="orders"><b>طلباتي</b><span>متابعة الطلبات.</span></button><button class="mq-card" data-mq-route="settings"><b>حسابي</b><span>البيانات والموقع.</span></button></div>;elseif($r==='mutqan_technician')echo'<div class="mq-stat-grid"><div><b>0</b><span>مهام اليوم</span></div><div><b>0</b><span>طلبات قريبة</span></div><div><b>0</b><span>قيد التنفيذ</span></div></div><div class="mq-card"><b>نظام الفني</b><span>المهام والخريطة الحية والحساب والمخزون في نفس النظام.</span></div>';elseif($r==='mutqan_operations')echo'<div class="mq-stat-grid"><div><b>0</b><span>طلبات جديدة</span></div><div><b>0</b><span>فنيون متاحون</span></div><div><b>0</b><span>مهام عاجلة</span></div></div><div class="mq-card"><b>غرفة العمليات</b><span>توزيع الطلبات والرادار والأسطول والمخزون من مساحة واحدة.</span></div>';elseif($r==='mutqan_site_admin')echo'<div class="mq-card"><b>مشرف الموقع</b><span>تحرير القوالب والصفحات والخصائص والصلاحيات للأنظمة الأخرى.</span></div>';else echo'<div class="mq-card"><b>مركز المالك</b><span>فتح واجهات الأدوار للمتابعة دون تغيير صلاحيات أصحابها.</span><div class="mq-role-links"><a href="?mq_view=customer">العميل</a><a href="?mq_view=technician">الفني</a><a href="?mq_view=operations">العمليات</a><a href="?mq_view=site_admin">مشرف الموقع</a></div></div>';}
+ private static function titles(){return array('visitor'=>array('title'=>'مُتقِن','subtitle'=>'الخدمات والعروض'),'mutqan_customer'=>array('title'=>'نظام العميل','subtitle'=>'الخدمات والطلبات والحساب'),'mutqan_technician'=>array('title'=>'نظام الفني','subtitle'=>'المهام والخريطة والعمل'),'mutqan_operations'=>array('title'=>'نظام العمليات','subtitle'=>'التوزيع والرادار والأسطول'),'mutqan_site_admin'=>array('title'=>'نظام مشرف الموقع','subtitle'=>'القوالب والصلاحيات والتحرير'),'mutqan_owner'=>array('title'=>'نظام المالك','subtitle'=>'الإدارة الكاملة'),'mutqan_partner'=>array('title'=>'نظام الشريك','subtitle'=>'الطلبات والحساب'));}
+ private static function nav($r){$m=array('visitor'=>array('home'=>'الرئيسية','services'=>'الخدمات','offers'=>'العروض'),'mutqan_customer'=>array('home'=>'الرئيسية','services'=>'الخدمات','offers'=>'العروض','orders'=>'طلباتي'),'mutqan_technician'=>array('home'=>'الرئيسية','orders'=>'مهامي','radar'=>'الخريطة الحية'),'mutqan_operations'=>array('home'=>'الرئيسية','orders'=>'الطلبات','radar'=>'الرادار','services'=>'الخدمات'),'mutqan_site_admin'=>array('home'=>'الرئيسية','services'=>'القوالب والخدمات','orders'=>'العمليات','radar'=>'واجهات التشغيل'),'mutqan_owner'=>array('home'=>'الرئيسية','services'=>'الخدمات','orders'=>'العمليات','radar'=>'الرادار'),'mutqan_partner'=>array('home'=>'الرئيسية','orders'=>'الطلبات'));return $m[$r]??$m['visitor'];}
+ public static function catalog(){return get_option(self::CATALOG_OPTION,self::catalog_defaults());}
+ private static function catalog_defaults(){return array(array('id'=>'ac','icon'=>'❄️','name'=>'التكييف والتبريد','items'=>array(array('id'=>'ac-maint','name'=>'صيانة'),array('id'=>'ac-clean','name'=>'غسيل وتنظيف'),array('id'=>'ac-install','name'=>'تركيب'),array('id'=>'ac-inspect','name'=>'فحص وتشخيص'),array('id'=>'ac-survey','name'=>'معاينة'))),array('id'=>'fridge','icon'=>'🧊','name'=>'الثلاجات والتبريد','items'=>array(array('id'=>'fr-maint','name'=>'صيانة'),array('id'=>'fr-clean','name'=>'تنظيف'),array('id'=>'fr-install','name'=>'تركيب'),array('id'=>'fr-inspect','name'=>'فحص ومعاينة'))),array('id'=>'electric','icon'=>'⚡','name'=>'الكهرباء','items'=>array(array('id'=>'el-maint','name'=>'صيانة'),array('id'=>'el-install','name'=>'تركيب'),array('id'=>'el-inspect','name'=>'فحص أعطال'),array('id'=>'el-panels','name'=>'لوحات وتحكم'))),array('id'=>'plumbing','icon'=>'🚰','name'=>'السباكة','items'=>array(array('id'=>'pl-maint','name'=>'صيانة وإصلاح'),array('id'=>'pl-install','name'=>'تركيب'),array('id'=>'pl-leak','name'=>'كشف تسرب'))),array('id'=>'general','icon'=>'🛠️','name'=>'الصيانة العامة','items'=>array(array('id'=>'gen-carpentry','name'=>'نجارة'),array('id'=>'gen-paint','name'=>'دهانات'),array('id'=>'gen-metal','name'=>'حدادة وأعمال معدنية'),array('id'=>'gen-building','name'=>'تجهيزات عامة'))),array('id'=>'cleaning','icon'=>'🧽','name'=>'التنظيف والتعقيم','items'=>array(array('id'=>'cl-home','name'=>'منازل'),array('id'=>'cl-commercial','name'=>'منشآت'),array('id'=>'cl-tanks','name'=>'خزانات'),array('id'=>'cl-pest','name'=>'مكافحة آفات'))),array('id'=>'moving','icon'=>'🚚','name'=>'النقل والتجهيز','items'=>array(array('id'=>'mv-furniture','name'=>'نقل أثاث'),array('id'=>'mv-packing','name'=>'تغليف وتخزين'),array('id'=>'mv-equipment','name'=>'نقل معدات'))));}
+ public static function admin_menu(){add_submenu_page('mutqan','واجهات الأنظمة','واجهات الأنظمة','mutqan_manage_settings','mutqan-interfaces',array(__CLASS__,'interfaces_page'));}
+ public static function interfaces_page(){if(!current_user_can('mutqan_manage_settings'))wp_die('Unauthorized');echo'<div class="wrap" dir="rtl"><h1>مُتقِن — صفحات الأنظمة</h1><p>كل دور له واجهة تشغيل داخل النظام، ويمكن إنشاء الصفحات العامة بروابط مستقلة.</p><table class="widefat striped"><tr><th>النظام</th><th>الرابط</th></tr>';foreach(array('العميل'=>'customer','الفني'=>'technician','العمليات'=>'operations','مشرف الموقع'=>'site_admin','المالك'=>'owner') as $l=>$v)echo'<tr><td>'.esc_html($l).'</td><td><a class="button" href="'.esc_url(home_url('/mutqan-'.$v.'/')).'">فتح الصفحة</a></td></tr>';echo'</table><form method="post" action="'.esc_url(admin_url('admin-post.php')).'">'.wp_nonce_field('mutqan_create_pages','_wpnonce',true,false).'<input type="hidden" name="action" value="mutqan_create_pages">'.submit_button('إنشاء صفحات الأنظمة','primary', 'submit',false).'</form></div>';}
+ public static function create_pages(){if(!current_user_can('mutqan_manage_settings'))wp_die('Unauthorized');check_admin_referer('mutqan_create_pages');foreach(array('customer'=>'العميل','technician'=>'الفني','operations'=>'العمليات','site_admin'=>'مشرف الموقع','owner'=>'المالك') as $v=>$l){$slug='mutqan-'.$v;if(get_page_by_path($slug))continue;wp_insert_post(array('post_title'=>'مُتقِن — '.$l,'post_name'=>$slug,'post_content'=>'[mutqan_app view="'.$v.'"]','post_status'=>'publish','post_type'=>'page'));}wp_safe_redirect(admin_url('admin.php?page=mutqan-interfaces&created=1'));exit;}
+ public static function rest(){register_rest_route('mutqan/v1','/ui-config',array('methods'=>'GET','permission_callback'=>'__return_true','callback'=>function(){return rest_ensure_response(array('role'=>self::role(),'catalog'=>self::catalog()));}));}
 }
 MUTQAN_App::init();
