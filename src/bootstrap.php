@@ -35,6 +35,7 @@ require_once MUTQAN_DIR.'src/Unit05/class-mutqan-promotions.php';
 require_once MUTQAN_DIR.'src/Unit06/class-mutqan-system.php';
 require_once MUTQAN_DIR.'src/Unit06/class-mutqan-notifications.php';
 require_once MUTQAN_DIR.'src/Unit06/class-mutqan-ai.php';
+require_once MUTQAN_DIR.'src/Unit06/class-mutqan-analytics.php';
 require_once MUTQAN_DIR.'src/Core/class-mutqan-registry.php';
 require_once MUTQAN_DIR.'src/Core/class-mutqan-events.php';
 require_once MUTQAN_DIR.'src/Core/class-mutqan-readiness.php';
