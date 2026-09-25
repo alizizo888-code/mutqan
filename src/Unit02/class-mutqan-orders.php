@@ -44,6 +44,11 @@ final class MUTQAN_Orders {
         $wpdb->update(self::table(),array('status'=>$status,'updated_at'=>current_time('mysql',true)),array('id'=>$id),array('%s','%s'),array('%d'));
         MUTQAN_Audit::log('order_status_changed','order',$id,array('from'=>$old,'to'=>$status,'actor'=>$actor?:get_current_user_id()));
         MUTQAN_Events::emit('order_status_changed',array('order_id'=>(int)$id,'from'=>$old,'to'=>$status));
+        if($status==='completed'){
+            $customer=(int)$wpdb->get_var($wpdb->prepare("SELECT customer_id FROM ".self::table()." WHERE id=%d",$id));
+            if($customer && class_exists('MUTQAN_CRM')) MUTQAN_CRM::add($customer,$id,'status','إكمال الخدمة','تم تسجيل اكتمال الطلب.','system');
+            if($customer && class_exists('MUTQAN_Notifications')) MUTQAN_Notifications::push($customer,'service_completed','اكتملت الخدمة','تم إكمال طلب الخدمة #'.$id,$id);
+        }
         return true;
     }
 
