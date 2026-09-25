@@ -77,7 +77,24 @@ final class MUTQAN_Radar {
         }
     }
 
+    public static function operations_room() {
+        $techs=self::technicians(); $orders=self::orders();
+        $alerts=array();
+        foreach($orders as $o){if($o['priority']==='urgent'&&!$o['technician_id'])$alerts[]=array('type'=>'urgent_unassigned','order_id'=>$o['id'],'message'=>'طلب عاجل غير معيّن');}
+        return array('summary'=>self::summary(),'technicians'=>$techs,'orders'=>$orders,'alerts'=>$alerts,'generated_at'=>current_time('mysql',true));
+    }
+
     public static function rest() {
+        register_rest_route('mutqan/v1', '/operations-room', array(
+            'methods'=>WP_REST_Server::READABLE,
+            'permission_callback'=>function(){return current_user_can('mutqan_manage_operations');},
+            'callback'=>function(){return rest_ensure_response(self::operations_room());}
+        ));
+        register_rest_route('mutqan/v1', '/operations-room/assign', array(
+            'methods'=>WP_REST_Server::EDITABLE,
+            'permission_callback'=>function(){return current_user_can('mutqan_manage_operations');},
+            'callback'=>function($r){$p=$r->get_json_params();$x=MUTQAN_Dispatch::assign(absint($p['order_id']??0),absint($p['technician_id']??0),false);return is_wp_error($x)?$x:rest_ensure_response(array('ok'=>true));}
+        ));
         register_rest_route('mutqan/v1', '/radar', array(
             'methods' => WP_REST_Server::READABLE,
             'permission_callback' => function() {
