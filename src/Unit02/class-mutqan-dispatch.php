@@ -40,8 +40,14 @@ final class MUTQAN_Dispatch {
             'lat'=>(float)get_user_meta($id,self::LAT_META,true),
             'lng'=>(float)get_user_meta($id,self::LNG_META,true),
             'capacity'=>$capacity,'active_orders'=>$active,'available_capacity'=>max(0,$capacity-$active),
-            'specialties'=>array_values(array_filter(array_map('sanitize_key',$specialties)))
+            'specialties'=>array_values(array_filter(array_map('sanitize_key',$specialties))),
+            'vehicle'=>self::vehicle_snapshot($id)
         );
+    }
+
+    public static function vehicle_snapshot($tech_id){
+        global $wpdb; if(!class_exists('MUTQAN_Fleet'))return null;
+        return $wpdb->get_row($wpdb->prepare("SELECT id,vehicle_code,name,plate,status,capacity FROM ".MUTQAN_Fleet::table()." WHERE technician_id=%d ORDER BY id DESC LIMIT 1",$tech_id),ARRAY_A);
     }
 
     public static function active_orders($tech_id){
