@@ -33,15 +33,15 @@ final class MUTQAN_Theme {
         return wp_parse_args((array)get_option(self::OPTION, array()), self::defaults());
     }
 
-    public static function ui_assets() {\n        wp_enqueue_style('mutqan-ui', plugins_url('../UI/assets/mutqan-ui.css', MUTQAN_FILE), array('mutqan-theme'), MUTQAN_VERSION);\n        wp_enqueue_script('mutqan-ui', plugins_url('../UI/assets/mutqan-ui.js', MUTQAN_FILE), array(), MUTQAN_VERSION, true);\n    }\n\n    public static function assets() {
-        wp_register_style('mutqan-theme', plugins_url('assets/mutqan-theme.css', MUTQAN_FILE), array(), MUTQAN_VERSION);
+    public static function ui_assets() {\n        wp_enqueue_style('mutqan-ui', plugins_url('src/UI/assets/mutqan-ui.css', MUTQAN_FILE), array('mutqan-theme'), MUTQAN_VERSION);\n        wp_enqueue_script('mutqan-ui', plugins_url('src/UI/assets/mutqan-ui.js', MUTQAN_FILE), array(), MUTQAN_VERSION, true);\n    }\n\n    public static function assets() {
+        wp_register_style('mutqan-theme', plugins_url('src/Theme/assets/mutqan-theme.css', MUTQAN_FILE), array(), MUTQAN_VERSION);
         wp_enqueue_style('mutqan-theme');
 
         $t = self::get();
         $css = ':root{--mq-primary:'.esc_attr($t['primary']).';--mq-primary-dark:'.esc_attr($t['primary_dark']).';--mq-accent:'.esc_attr($t['accent']).';--mq-surface:'.esc_attr($t['surface']).';--mq-card:'.esc_attr($t['card']).';--mq-text:'.esc_attr($t['text']).';--mq-muted:'.esc_attr($t['muted']).';--mq-radius:'.esc_attr($t['radius']).';}';
         wp_add_inline_style('mutqan-theme', $css);
 
-        wp_enqueue_script('mutqan-theme', plugins_url('assets/mutqan-theme.js', MUTQAN_FILE), array(), MUTQAN_VERSION, true);
+        wp_enqueue_script('mutqan-theme', plugins_url('src/Theme/assets/mutqan-theme.js', MUTQAN_FILE), array(), MUTQAN_VERSION, true);
         wp_localize_script('mutqan-theme', 'MUTQAN_THEME', array(
             'splashEnabled' => (bool)$t['splash_enabled'],
             'duration' => absint($t['splash_duration'])
