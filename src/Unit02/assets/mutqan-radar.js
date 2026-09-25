@@ -1,0 +1,20 @@
+(function(){
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c];});}
+function render(root,data){
+ var s=data.summary||{}, t=s.technicians||{}, o=s.orders||{};
+ root.querySelector('[data-radar-summary]').innerHTML='<div class="mq-radar-stat"><b>'+esc(t.available||0)+'</b><small>فنيون متاحون</small></div><div class="mq-radar-stat"><b>'+esc(t.busy||0)+'</b><small>فنيون مشغولون</small></div><div class="mq-radar-stat"><b>'+esc((o.new||0)+(o.pending_assignment||0))+'</b><small>طلبات تنتظر التوزيع</small></div><div class="mq-radar-stat"><b>'+esc(o.urgent||0)+'</b><small>طلبات عاجلة</small></div>';
+ root.querySelector('[data-radar-map]').innerHTML='<strong>خريطة العمليات</strong><br><small>طبقة الخرائط الخارجية تحتاج إعداد Google Maps/Map provider. بيانات المواقع الحقيقية متاحة عبر API.</small>';
+ root.querySelector('[data-radar-techs]').innerHTML=(data.technicians||[]).map(function(x){return '<div class="mq-radar-item"><strong>'+esc(x.name)+'</strong><div class="mq-radar-meta">'+esc(x.status)+' · السعة '+esc(x.active_orders)+' / '+esc(x.capacity)+'</div><span class="mq-radar-pill">'+(x.lat&&x.lng?'GPS متاح':'GPS غير متاح')+'</span></div>';}).join('')||'<div class="mq-radar-meta">لا يوجد فنيون ظاهرون.</div>';
+ root.querySelector('[data-radar-orders]').innerHTML=(data.orders||[]).map(function(x){return '<div class="mq-radar-item"><strong>#'+esc(x.id)+' · '+esc(x.type)+'</strong><div class="mq-radar-meta">'+esc(x.status)+' · '+esc(x.priority)+'</div><span class="mq-radar-pill">'+(x.technician_id?'معيّن':'غير معيّن')+'</span></div>';}).join('')||'<div class="mq-radar-meta">لا توجد طلبات مفتوحة.</div>';
+}
+function load(root){
+ fetch((window.MUTQAN_RADAR||{}).endpoint,{credentials:'same-origin',headers:{'X-WP-Nonce':(window.MUTQAN_RADAR||{}).nonce||''}}).then(function(r){return r.json();}).then(function(data){if(data&&data.summary)render(root,data);}).catch(function(){});
+}
+document.addEventListener('DOMContentLoaded',function(){
+ document.querySelectorAll('.mq-radar').forEach(function(root){
+   var btn=root.querySelector('[data-radar-refresh]'); if(btn)btn.addEventListener('click',function(){load(root);});
+   load(root);
+   window.setInterval(function(){load(root);},10000);
+ });
+});
+})();
