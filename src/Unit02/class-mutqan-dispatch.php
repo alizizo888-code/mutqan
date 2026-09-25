@@ -8,7 +8,25 @@ final class MUTQAN_Dispatch {
     const CAPACITY_META='_mutqan_order_capacity';
     const SPECIALTIES_META='_mutqan_specialties';
 
-    public static function init(){ add_action('rest_api_init',array(__CLASS__,'rest')); }
+    public static function init(){ add_action('rest_api_init',array(__CLASS__,'rest')); MUTQAN_Events::listen('order_created',array(__CLASS__,'on_order_created'),20); }
+
+    public static function on_order_created($payload){
+        $id=absint($payload['order_id']??0);
+        if(!$id)return;
+        $auto=get_option('mutqan_auto_dispatch',1);
+        if(!$auto)return;
+        $result=self::assign_best($id);
+        if(is_wp_error($result)){
+            MUTQAN_Audit::log('auto_dispatch_no_candidate','order',$id,array('error'=>$result->get_error_code()));
+        }
+    }
+
+    public static function assign_best($order_id){
+        $list=self::candidates($order_id);
+        if(is_wp_error($list))return $list;
+        if(empty($list))return new WP_Error('no_candidate','No suitable approved technician is available.',array('status'=>409));
+        return self::assign($order_id,(int)$list[0]['id'],true);
+    }
 
     public static function technician_snapshot($id){
         $u=get_userdata($id);
