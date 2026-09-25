@@ -19,7 +19,14 @@ function load(){
  api('/technician/me').then(function(x){var s=document.querySelector('[data-tech-state]');if(s)s.textContent='الحالة: '+esc(x.status)+' · المهام '+esc(x.active_orders)+' / '+esc(x.capacity);}).catch(function(){});
 }
 function reportForm(id){var d=document.querySelector('[data-tech-detail]');d.hidden=false;d.innerHTML='<h3>تقرير الخدمة #'+esc(id)+'</h3><p><textarea data-report-diagnosis placeholder="التشخيص" style="width:100%;min-height:70px"></textarea></p><p><textarea data-report-work placeholder="تقرير العمل" style="width:100%;min-height:90px"></textarea></p><p><label><input type="checkbox" data-check="1"> فحص أولي</label> <label><input type="checkbox" data-check="2"> تنفيذ الخدمة</label> <label><input type="checkbox" data-check="3"> اختبار التشغيل</label></p><p><input data-report-parts placeholder="أرقام قطع الغيار مفصولة بفاصلة" style="width:100%"></p><button class="primary" data-save-report="'+id+'">حفظ التقرير</button></p>';}
-var gpsWatch=null;function startGPS(){if(!navigator.geolocation||gpsWatch!==null)return;gpsWatch=navigator.geolocation.watchPosition(function(p){api('/gps/location',{method:'POST',body:JSON.stringify({lat:p.coords.latitude,lng:p.coords.longitude,accuracy:p.coords.accuracy})}).catch(function(){});},function(){},{enableHighAccuracy:true,maximumAge:5000,timeout:15000});}
+var gpsWatch=null,gpsLastSent=0,gpsOrder=0;
+function activeOrderId(){var x=document.querySelector('.mq-tech-card [data-status="en_route"]');return x?parseInt(x.getAttribute('data-order'),10):0;}
+function startGPS(){if(!navigator.geolocation||gpsWatch!==null)return;gpsWatch=navigator.geolocation.watchPosition(function(p){
+ var now=Date.now(); if(now-gpsLastSent<10000)return; gpsLastSent=now;
+ api('/gps/location',{method:'POST',body:JSON.stringify({lat:p.coords.latitude,lng:p.coords.longitude,accuracy:p.coords.accuracy,order_id:activeOrderId()||0})}).catch(function(){});
+ },function(){},{enableHighAccuracy:true,maximumAge:5000,timeout:15000});}
+function stopGPS(){if(gpsWatch!==null&&navigator.geolocation){navigator.geolocation.clearWatch(gpsWatch);gpsWatch=null;}}
+
 function setStatus(s){
  var body={status:s}; if(s==='available'||s==='busy')startGPS();
  if(s==='en_route')startGPS(); if(navigator.geolocation)navigator.geolocation.getCurrentPosition(function(pos){body.lat=pos.coords.latitude;body.lng=pos.coords.longitude;api('/technicians/me/status',{method:'POST',body:JSON.stringify(body)}).then(load).catch(alert);},function(){api('/technicians/me/status',{method:'POST',body:JSON.stringify(body)}).then(load).catch(alert);});
