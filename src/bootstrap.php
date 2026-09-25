@@ -11,6 +11,7 @@ require_once MUTQAN_DIR.'src/Core/class-mutqan-events.php';
 require_once MUTQAN_DIR.'src/Core/class-mutqan-readiness.php';
 require_once MUTQAN_DIR.'src/UI/class-mutqan-app.php';
 require_once MUTQAN_DIR.'src/Core/class-mutqan-registry-admin.php';
+require_once MUTQAN_DIR.'src/Core/class-mutqan-permissions-admin.php';
 register_activation_hook(MUTQAN_FILE,function(){
     MUTQAN_Operations::install();
     MUTQAN_Services::install();
