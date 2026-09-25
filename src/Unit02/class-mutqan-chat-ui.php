@@ -26,7 +26,7 @@ final class MUTQAN_Chat_UI {
             'nonce'=>wp_create_nonce('wp_rest'),
             'userId'=>get_current_user_id()
         ));
-        return '<section class="mq-chat"><div class="mq-chat-head"><h3>محادثة الطلب #'.esc_html($id).'</h3><span class="mq-chip">مُتقِن</span></div><div class="mq-chat-messages" data-chat-messages>جاري التحميل...</div><form class="mq-chat-form" data-chat-form><button type="button" class="mq-attach" disabled>📎</button><input name="body" type="text" maxlength="2000" placeholder="اكتب رسالتك..."><button type="submit">إرسال</button></form></section>';
+        return '<section class="mq-chat"><div class="mq-chat-head"><h3>محادثة الطلب #'.esc_html($id).'</h3><span class="mq-chip">مُتقِن</span></div><div class="mq-chat-messages" data-chat-messages>جاري التحميل...</div><form class="mq-chat-form" data-chat-form><label class="mq-attach">📎<input type="file" data-chat-file accept="image/*,audio/*,.pdf" hidden></label><input name="body" type="text" maxlength="2000" placeholder="اكتب رسالتك..."><button type="submit">إرسال</button></form><div class="mq-chat-tools"><input data-wa-phone placeholder="رقم WhatsApp" inputmode="tel"><button type="button" data-wa>WhatsApp</button></div></section>';
     }
 }
 MUTQAN_Chat_UI::init();
