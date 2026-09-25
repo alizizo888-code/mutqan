@@ -1,6 +1,7 @@
 <?php
 defined('ABSPATH') || exit;
 require_once MUTQAN_DIR.'src/Unit02/class-mutqan-operations.php';
+require_once MUTQAN_DIR.'src/Unit02/class-mutqan-orders.php';
 require_once MUTQAN_DIR.'src/Unit03/class-mutqan-services.php';
 require_once MUTQAN_DIR.'src/Unit04/class-mutqan-finance.php';
 require_once MUTQAN_DIR.'src/Unit05/class-mutqan-marketing.php';
