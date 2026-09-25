@@ -10,6 +10,7 @@ require_once MUTQAN_DIR.'src/Unit02/class-mutqan-communications.php';
 require_once MUTQAN_DIR.'src/Unit02/class-mutqan-chat-ui.php';
 require_once MUTQAN_DIR.'src/Unit02/class-mutqan-field-execution.php';
 require_once MUTQAN_DIR.'src/Unit02/class-mutqan-inventory.php';
+require_once MUTQAN_DIR.'src/Unit02/class-mutqan-fleet.php';
 require_once MUTQAN_DIR.'src/Unit02/class-mutqan-technician-portal.php';
 require_once MUTQAN_DIR.'src/Unit02/class-mutqan-chat-upload.php';
 require_once MUTQAN_DIR.'src/Unit03/class-mutqan-services.php';
@@ -44,6 +45,7 @@ register_activation_hook(MUTQAN_FILE,function(){
     MUTQAN_Communications::install();
     MUTQAN_Field_Execution::install();
     MUTQAN_Inventory::install();
+    MUTQAN_Fleet::install();
     MUTQAN_Services::install();
     MUTQAN_Finance::install();
     MUTQAN_Billing::install();
