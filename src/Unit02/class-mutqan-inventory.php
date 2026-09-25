@@ -15,7 +15,7 @@ final class MUTQAN_Inventory {
   $normalized=array();
   foreach($items as $item){$iid=is_array($item)?absint($item['inventory_id']??0):absint($item);$qty=is_array($item)?max(0,(float)($item['quantity']??1)):1;if($iid&&$qty>0)$normalized[$iid]=($normalized[$iid]??0)+$qty;}
   $existing_rows=$wpdb->get_results($wpdb->prepare("SELECT inventory_id,quantity FROM ".self::usage_table()." WHERE order_id=%d",$order_id),ARRAY_A);
-  $existing=array();foreach($existing_rows as $row)$existing[(int)$row['inventory_id']=(float)$row['quantity'];
+  $existing=array();foreach($existing_rows as $row)$existing[(int)$row['inventory_id']] = (float)$row['quantity'];
   $deltas=array_unique(array_merge(array_keys($existing),array_keys($normalized)));
   $wpdb->query('START TRANSACTION');
   try{
