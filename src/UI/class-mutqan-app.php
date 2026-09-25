@@ -3,9 +3,11 @@ defined('ABSPATH') || exit;
 
 final class MUTQAN_App {
     public static function init() {
-        add_shortcode('mutqan_app', array(__CLASS__,'render'));
+        add_shortcode('mutqan_app', array(__CLASS__,'render')); add_action('wp_enqueue_scripts', array(__CLASS__,'assets'));
         add_action('rest_api_init', array(__CLASS__,'rest'));
     }
+
+    public static function assets() { wp_enqueue_style('mutqan-customer',plugins_url('src/Unit03/assets/mutqan-customer.css',MUTQAN_FILE),array('mutqan-ui'),MUTQAN_VERSION); wp_enqueue_script('mutqan-customer',plugins_url('src/Unit03/assets/mutqan-customer.js',MUTQAN_FILE),array(),MUTQAN_VERSION,true); wp_localize_script('mutqan-customer','mqCustomer',array('root'=>esc_url_raw(rest_url('mutqan/v1')),'loggedIn'=>is_user_logged_in())); }
 
     public static function role() {
         if (!is_user_logged_in()) return 'visitor';
@@ -35,7 +37,7 @@ final class MUTQAN_App {
                     <div><span class="mq-chip">مُتقِن</span><h1><?php echo esc_html($title[$role]??'مُتقِن'); ?></h1><p>نفس الهوية، صلاحيات ومهام مختلفة حسب الدور.</p></div>
                 </div>
                 <?php if ($role==='visitor' || $role==='mutqan_customer'): ?>
-                    <div class="mq-hero"><h2>خدمتك تبدأ من هنا</h2><p>اختر التخصص، ارفع الطلب، وحدد موقع الخدمة.</p><button type="button" data-mq-action="new-order">ابدأ طلب خدمة ←</button></div>
+                    <div class="mq-hero"><h2>خدمتك تبدأ من هنا</h2><p>اختر التخصص، ارفع الطلب، وحدد موقع الخدمة.</p><button type="button" data-mq-action="new-order">ابدأ طلب خدمة ←</button><div class="mq-portal-slot"><?php echo do_shortcode("[mutqan_customer_portal]"); ?></div></div>
                     <div class="mq-grid"><button class="mq-service">❄️<b>تكييف وتبريد</b><small>صيانة وتركيب وفحص</small></button><button class="mq-service">⚡<b>كهرباء</b><small>أعمال وصيانة</small></button><button class="mq-service">🔧<b>سباكة</b><small>كشف وإصلاح وتركيب</small></button><button class="mq-service">🛠️<b>صيانة عامة</b><small>حلول متعددة</small></button></div>
                 <?php elseif ($role==='mutqan_technician'): ?>
                     <div class="mq-stat-row"><div><b>3</b><small>مهام اليوم</small></div><div><b>2</b><small>طلبات قريبة</small></div><div><b>420</b><small>ريال اليوم</small></div></div><div class="mq-hero"><h2>المهمة الجارية</h2><p>ابدأ التحرك ثم أكد الوصول من داخل الطلب.</p><button type="button" data-mq-action="open-task">فتح المهمة</button></div>
