@@ -56,6 +56,7 @@ final class MUTQAN_Communications {
         if(!in_array($type,array('text','voice','image','file','system'),true))return new WP_Error('invalid_type','Invalid message type.');
         $recipient=($uid==(int)$o['customer_id'])?(int)$o['technician_id']:(int)$o['customer_id'];
         if(!$recipient && !current_user_can('mutqan_manage_operations'))return new WP_Error('no_recipient','No recipient assigned.');
+        if($attachment_id && !self::attachment_allowed($attachment_id,$order_id,$uid))return new WP_Error('invalid_attachment','Attachment is not allowed.',array('status'=>400));
         if($type==='text') {
             $body=sanitize_textarea_field($body);
             if($body==='')return new WP_Error('empty_message','Message is empty.');
@@ -68,6 +69,16 @@ final class MUTQAN_Communications {
         MUTQAN_Audit::log('message_sent','order',$order_id,array('message_id'=>$id,'type'=>$type));
         MUTQAN_Events::emit('message_sent',array('message_id'=>$id,'order_id'=>$order_id,'sender_id'=>$uid,'recipient_id'=>$recipient,'type'=>$type));
         return $id;
+    }
+
+    public static function attachment_allowed($attachment_id,$order_id,$user_id){
+        $attachment_id=absint($attachment_id); if(!$attachment_id)return false;
+        $post=get_post($attachment_id); if(!$post)return false;
+        if($post->post_type!=='attachment')return false;
+        $mime=get_post_mime_type($attachment_id);
+        $allowed=array('image/jpeg','image/png','image/webp','application/pdf','audio/mpeg','audio/ogg','audio/webm');
+        if(!in_array($mime,$allowed,true))return false;
+        return current_user_can('mutqan_manage_operations') || (int)$post->post_author===$user_id;
     }
 
     public static function rest() {
