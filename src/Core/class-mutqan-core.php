@@ -33,7 +33,7 @@ final class MUTQAN_Core {
             'mutqan_edit_customers','mutqan_delete_customers','mutqan_manage_operations',
             'mutqan_view_own_profile','mutqan_edit_own_profile','mutqan_manage_pricing',
             'mutqan_manage_invoices','mutqan_manage_settings','mutqan_view_audit',
-            'mutqan_manage_ai'
+            'mutqan_manage_ai','mutqan_manage_marketing','mutqan_manage_finance','mutqan_manage_accounting','mutqan_manage_expenses','mutqan_manage_settlements','mutqan_manage_wallets','mutqan_manage_commissions','mutqan_manage_technicians','mutqan_manage_dispatch'
         );
         $owner = get_role('mutqan_owner');
         if ($owner) {
