@@ -118,10 +118,14 @@ final class MUTQAN_Content_SEO {
         $model = sanitize_text_field(get_option('mutqan_gemini_model','gemini-2.5-flash'));
         $url = 'https://generativelanguage.googleapis.com/v1beta/models/'.rawurlencode($model).':generateContent?key='.rawurlencode($key);
         $prompt = "اكتب مسودة عربية أصلية ومفيدة للزائر عن التخصص: {$specialty}. الكلمة/الموضوع: {$keyword}. العنوان: {$title}. النوع: {$type}. الموقع المستهدف إن كان مناسباً: السعودية. لا تحشو الكلمات المفتاحية، ولا تنسخ محتوى من مواقع أخرى، ولا تصنع وعوداً بالترتيب في Google. استخدم عناوين فرعية واضحة، خطوات عملية، أسئلة شائعة عند الحاجة، ومعلومات تساعد العميل فعلياً. أعد HTML صالحاً للمحتوى فقط، بدون <script>.";
-        $res = wp_remote_post($url,array('timeout'=>45,'headers'=>array('Content-Type'=>'application/json'),'body'=>wp_json_encode(array(
-            'systemInstruction'=>array('parts'=>array(array('text'=>'أنت محرر محتوى مهني لموقع خدمات وصيانة. الأولوية للفائدة والدقة والأصالة وسهولة القراءة.'))),
-            'contents'=>array(array('role'=>'user','parts'=>array(array('text'=>$prompt))))
-        )));
+        $res = wp_remote_post($url, array(
+            'timeout' => 45,
+            'headers' => array('Content-Type' => 'application/json'),
+            'body' => wp_json_encode(array(
+                'systemInstruction' => array('parts' => array(array('text' => 'أنت محرر محتوى مهني لموقع خدمات وصيانة. الأولوية للفائدة والدقة والأصالة وسهولة القراءة.'))),
+                'contents' => array(array('role' => 'user', 'parts' => array(array('text' => $prompt))))
+            ))
+        ));
         if (is_wp_error($res)) return new WP_Error('ai_request_failed','تعذر الاتصال بمزود الذكاء الاصطناعي.',array('status'=>502));
         $code = wp_remote_retrieve_response_code($res);
         $body = json_decode(wp_remote_retrieve_body($res),true);
