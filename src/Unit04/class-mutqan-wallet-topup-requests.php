@@ -1,0 +1,14 @@
+<?php
+defined('ABSPATH') || exit;
+final class MUTQAN_Wallet_Topup_Requests {
+ public static function init(){add_action('rest_api_init',array(__CLASS__,'rest'));}
+ public static function table(){global $wpdb;return $wpdb->prefix.'mutqan_wallet_topup_requests';}
+ public static function install(){global $wpdb;require_once ABSPATH.'wp-admin/includes/upgrade.php';$c=$wpdb->get_charset_collate();dbDelta("CREATE TABLE ".self::table()." (id bigint unsigned NOT NULL AUTO_INCREMENT,user_id bigint unsigned NOT NULL,amount decimal(14,2) NOT NULL,status varchar(20) NOT NULL DEFAULT 'pending',note text NULL,created_at datetime NOT NULL,updated_at datetime NOT NULL,PRIMARY KEY(id),KEY user_id(user_id),KEY status(status)) $c;");}
+ private static function manage(){return current_user_can('mutqan_manage_operations')||current_user_can('mutqan_manage_settings');}
+ public static function rest(){
+  register_rest_route('mutqan/v1','/wallets/topup-request',array('methods'=>WP_REST_Server::CREATABLE,'permission_callback'=>function(){return is_user_logged_in()&&MUTQAN_Users::technician_can_receive(get_current_user_id());},'callback'=>function($r){global $wpdb;$a=max(0,(float)($r->get_json_params()['amount']??0));if($a<=0)return new WP_Error('invalid_amount','Amount must be positive.',array('status'=>400));$wpdb->insert(self::table(),array('user_id'=>get_current_user_id(),'amount'=>$a,'status'=>'pending','note'=>sanitize_textarea_field($r->get_json_params()['note']??''),'created_at'=>current_time('mysql',true),'updated_at'=>current_time('mysql',true)));$id=(int)$wpdb->insert_id;MUTQAN_Audit::log('wallet_topup_requested','wallet_topup_request',$id,array('amount'=>$a));return rest_ensure_response(array('id'=>$id,'status'=>'pending'));}));
+  register_rest_route('mutqan/v1','/wallets/topup-requests',array('methods'=>WP_REST_Server::READABLE,'permission_callback'=>function(){return self::manage();},'callback'=>function(){global $wpdb;return rest_ensure_response($wpdb->get_results("SELECT * FROM ".self::table()." ORDER BY id DESC LIMIT 200",ARRAY_A));}));
+  register_rest_route('mutqan/v1','/wallets/topup-requests/(?P<id>\d+)/approve',array('methods'=>WP_REST_Server::EDITABLE,'permission_callback'=>function(){return self::manage();},'callback'=>function($r){global $wpdb;$id=(int)$r['id'];$x=$wpdb->get_row($wpdb->prepare("SELECT * FROM ".self::table()." WHERE id=%d",$id),ARRAY_A);if(!$x||$x['status']!=='pending')return new WP_Error('invalid_request','Invalid top-up request.',array('status'=>400));$posted=MUTQAN_Wallets::post((int)$x['user_id'],(float)$x['amount'],'topup_request','wallet_topup_request',$id,'Approved technician top-up');if(is_wp_error($posted))return $posted;$wpdb->update(self::table(),array('status'=>'approved','updated_at'=>current_time('mysql',true)),array('id'=>$id));return rest_ensure_response(array('id'=>$id,'status'=>'approved','wallet'=>$posted));}));
+ }
+}
+MUTQAN_Wallet_Topup_Requests::init();
