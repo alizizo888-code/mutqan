@@ -55,7 +55,7 @@ final class MUTQAN_Dispatch {
             if($s['available_capacity']<1)continue;
             if($needed && $needed!=='service' && !empty($s['specialties']) && !in_array($needed,$s['specialties'],true))continue;
             $s['distance_km']=self::distance_km((float)$o['lat'],(float)$o['lng'],$s['lat'],$s['lng']);
-            $s['score']=($s['distance_km']===null?9999:$s['distance_km'])+($s['available_capacity']<1?1000:0);
+            $priority_weight=array('urgent'=>-50,'high'=>-20,'normal'=>0,'low'=>10);\n            $s['score']=($s['distance_km']===null?9999:$s['distance_km'])+($priority_weight[sanitize_key($o['priority'])]??0);
             $result[]=$s;
         }
         usort($result,function($a,$b){return $a['score']<=>$b['score'];});
@@ -70,7 +70,7 @@ final class MUTQAN_Dispatch {
         $o=$wpdb->get_row($wpdb->prepare("SELECT * FROM ".MUTQAN_Operations::table()." WHERE id=%d",$order_id),ARRAY_A);
         if(!$o)return new WP_Error('not_found','Order not found.');
         if(!in_array($o['status'],array('new','pending_assignment','declined'),true))return new WP_Error('invalid_status','Order is not assignable in its current state.');
-        $wpdb->update(MUTQAN_Operations::table(),array('technician_id'=>$tech_id,'status'=>'assigned','updated_at'=>current_time('mysql',true)),array('id'=>$order_id),array('%d','%s','%s'),array('%d'));
+        $wpdb->update(MUTQAN_Operations::table(),array('technician_id'=>$tech_id,'updated_at'=>current_time('mysql',true)),array('id'=>$order_id),array('%d','%s'),array('%d'));\n        if(in_array($o['status'],array('new','declined'),true))MUTQAN_Orders::transition($order_id,'pending_assignment');\n        $transition=MUTQAN_Orders::transition($order_id,'assigned');\n        if(is_wp_error($transition))return $transition;
         MUTQAN_Audit::log($automatic?'order_auto_assigned':'order_assigned','order',$order_id,array('technician_id'=>$tech_id,'automatic'=>(bool)$automatic));
         MUTQAN_Events::emit('order_assigned',array('order_id'=>(int)$order_id,'technician_id'=>(int)$tech_id,'automatic'=>(bool)$automatic));
         return true;
