@@ -7,7 +7,6 @@ final class MUTQAN_Theme {
     public static function init() {
         add_action('wp_enqueue_scripts', array(__CLASS__, 'assets'));
         add_action('wp_enqueue_scripts', array(__CLASS__, 'ui_assets'), 20);
-        add_shortcode('mutqan_app', array(__CLASS__, 'shortcode'));
         add_action('admin_menu', array(__CLASS__, 'menu'));
         add_action('admin_init', array(__CLASS__, 'settings'));
     }
