@@ -10,7 +10,7 @@ final class MUTQAN_Permissions_Admin {
             'mutqan_view_orders'=>'عرض الطلبات','mutqan_add_orders'=>'إضافة الطلبات','mutqan_edit_orders'=>'تعديل الطلبات','mutqan_delete_orders'=>'حذف الطلبات','mutqan_approve_orders'=>'اعتماد الطلبات','mutqan_view_own_orders'=>'عرض طلباتي','mutqan_edit_own_orders'=>'تعديل طلباتي',
             'mutqan_view_customers'=>'عرض العملاء','mutqan_add_customers'=>'إضافة العملاء','mutqan_edit_customers'=>'تعديل العملاء','mutqan_delete_customers'=>'حذف العملاء',
             'mutqan_manage_operations'=>'إدارة العمليات','mutqan_view_own_profile'=>'عرض الملف الشخصي','mutqan_edit_own_profile'=>'تعديل الملف الشخصي',
-            'mutqan_manage_pricing'=>'إدارة الأسعار','mutqan_manage_invoices'=>'إدارة الفواتير','mutqan_manage_settings'=>'إدارة الإعدادات','mutqan_view_audit'=>'عرض التدقيق','mutqan_manage_ai'=>'إدارة الذكاء الاصطناعي'
+            'mutqan_manage_pricing'=>'إدارة الأسعار','mutqan_manage_invoices'=>'إدارة الفواتير','mutqan_manage_settings'=>'إدارة الإعدادات','mutqan_view_audit'=>'عرض التدقيق','mutqan_manage_ai'=>'إدارة الذكاء الاصطناعي','mutqan_view_analytics'=>'عرض التحليلات'
         );
     }
 
