@@ -7,6 +7,7 @@ require_once MUTQAN_DIR.'src/Unit02/class-mutqan-gps.php';
 require_once MUTQAN_DIR.'src/Unit02/class-mutqan-radar.php';
 require_once MUTQAN_DIR.'src/Unit02/class-mutqan-radar-ui.php';
 require_once MUTQAN_DIR.'src/Unit02/class-mutqan-communications.php';
+require_once MUTQAN_DIR.'src/Unit02/class-mutqan-chat-ui.php';
 require_once MUTQAN_DIR.'src/Unit03/class-mutqan-services.php';
 require_once MUTQAN_DIR.'src/Unit04/class-mutqan-finance.php';
 require_once MUTQAN_DIR.'src/Unit05/class-mutqan-marketing.php';
