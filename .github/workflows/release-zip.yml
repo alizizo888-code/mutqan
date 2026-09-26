@@ -15,15 +15,18 @@ jobs:
         run: |
           set -e
           find . -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Activation loader smoke test
+        run: php tests/activation-smoke.php
       - name: Package plugin
         run: |
           set -e
+          VERSION="$(php -r 'preg_match("/Version:\\s*([^\\r\\n]+)/", file_get_contents("mutqan.php"), $m); echo trim($m[1]);')"
           rm -rf build
-          mkdir -p build/mutqan
-          rsync -a --exclude='.git' --exclude='.github' --exclude='build' --exclude='*.zip' ./ build/mutqan/
+          mkdir -p "build/mutqan"
+          rsync -a --exclude='.git' --exclude='.github' --exclude='build' --exclude='tests' --exclude='*.zip' ./ "build/mutqan/"
           cd build
-          zip -qr mutqan-unified-0.6.3.zip mutqan
+          zip -qr "mutqan-unified-${VERSION}.zip" mutqan
       - uses: actions/upload-artifact@v4
         with:
-          name: mutqan-unified-0.6.3
-          path: build/mutqan-unified-0.6.3.zip
+          name: mutqan-unified-${{ github.sha }}
+          path: build/mutqan-unified-*.zip
