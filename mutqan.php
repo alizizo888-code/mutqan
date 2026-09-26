@@ -14,8 +14,6 @@ require_once MUTQAN_DIR.'src/Unit01/class-mutqan-users.php';
 require_once MUTQAN_DIR.'src/Unit01/class-mutqan-audit.php';
 require_once MUTQAN_DIR.'src/Unit01/class-mutqan-admin.php';
 require_once MUTQAN_DIR.'src/Unit01/bootstrap.php';
-require_once MUTQAN_DIR.'src/bootstrap.php';
-require_once MUTQAN_DIR.'src/Theme/class-mutqan-theme.php';
 register_activation_hook(MUTQAN_FILE,'mutqan_activate_plugin');
 function mutqan_activate_plugin(){
     // Activation must never be blocked by an optional module installer.
@@ -45,4 +43,4 @@ function mutqan_activate_plugin(){
     }
     flush_rewrite_rules();
 }
-add_action('plugins_loaded',array('MUTQAN_Core','boot'));
+undefined
