@@ -22,8 +22,8 @@ jobs:
           mkdir -p build/mutqan
           rsync -a --exclude='.git' --exclude='.github' ./ build/mutqan/
           cd build
-          zip -qr mutqan-unified-0.6.0.zip mutqan
+          zip -qr mutqan-unified-0.6.2.zip mutqan
       - uses: actions/upload-artifact@v4
         with:
-          name: mutqan-unified-0.6.0
-          path: build/mutqan-unified-0.6.0.zip
+          name: mutqan-unified-0.6.2
+          path: build/mutqan-unified-0.6.2.zip
