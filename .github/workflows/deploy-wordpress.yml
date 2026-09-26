@@ -1,0 +1,84 @@
+name: MUTQAN Deploy to WordPress
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: mutqan-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: PHP syntax check
+        run: |
+          set -e
+          find . -name '*.php' -not -path './build/*' -not -path './tests/*' -print0 | xargs -0 -n1 php -l
+
+      - name: Activation loader smoke test
+        run: php tests/activation-smoke.php
+
+  deploy:
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure SSH
+        env:
+          MUTQAN_SSH_KEY: ${{ secrets.MUTQAN_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          test -n "$MUTQAN_SSH_KEY"
+          mkdir -p ~/.ssh
+          printf '%s\n' "$MUTQAN_SSH_KEY" > ~/.ssh/mutqan_deploy_key
+          chmod 600 ~/.ssh/mutqan_deploy_key
+          ssh-keyscan -H "${{ secrets.MUTQAN_SSH_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Prepare deployment package
+        run: |
+          set -euo pipefail
+          rm -rf build/mutqan
+          mkdir -p build/mutqan
+          rsync -a --delete \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='build/' \
+            --exclude='tests/' \
+            --exclude='*.zip' \
+            ./ build/mutqan/
+
+      - name: Deploy plugin to WordPress
+        env:
+          SSH_HOST: ${{ secrets.MUTQAN_SSH_HOST }}
+          SSH_USER: ${{ secrets.MUTQAN_SSH_USER }}
+          REMOTE_PATH: ${{ secrets.MUTQAN_REMOTE_PATH }}
+        run: |
+          set -euo pipefail
+          test -n "$SSH_HOST"
+          test -n "$SSH_USER"
+          test -n "$REMOTE_PATH"
+          ssh -i ~/.ssh/mutqan_deploy_key "$SSH_USER@$SSH_HOST" "mkdir -p '$REMOTE_PATH'"
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/mutqan_deploy_key" \
+            build/mutqan/ "$SSH_USER@$SSH_HOST:$REMOTE_PATH/"
+
+      - name: Deployment summary
+        run: |
+          echo "MUTQAN deployed from commit $GITHUB_SHA"
+          echo "WordPress root was not replaced; only the MUTQAN plugin path was synchronized."
