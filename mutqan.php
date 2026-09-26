@@ -2,11 +2,11 @@
 /**
  * Plugin Name: MUTQAN Unified System
  * Description: Unified maintenance operations core for WordPress.
- * Version: 0.6.1
+ * Version: 0.6.2
  * Requires PHP: 7.4
  */
 defined('ABSPATH') || exit;
-define('MUTQAN_VERSION','0.6.1');
+define('MUTQAN_VERSION','0.6.2');
 define('MUTQAN_FILE',__FILE__);
 define('MUTQAN_DIR',plugin_dir_path(__FILE__));
 require_once MUTQAN_DIR.'src/Core/class-mutqan-core.php';
