@@ -43,7 +43,9 @@ require_once MUTQAN_DIR.'src/Core/class-mutqan-readiness.php';
 require_once MUTQAN_DIR.'src/UI/class-mutqan-app.php';
 require_once MUTQAN_DIR.'src/Core/class-mutqan-registry-admin.php';
 require_once MUTQAN_DIR.'src/Core/class-mutqan-permissions-admin.php';
-register_activation_hook(MUTQAN_FILE,function(){
+/* Activation is registered once from mutqan.php after all classes are loaded. */
+/*
+function mutqan_legacy_activation(){
     MUTQAN_Operations::install(); MUTQAN_GPS::install(); MUTQAN_Communications::install();
     MUTQAN_Field_Execution::install(); MUTQAN_Inventory::install(); MUTQAN_Fleet::install();
     MUTQAN_Services::install(); MUTQAN_Finance::install(); MUTQAN_Billing::install(); MUTQAN_Wallets::install();
@@ -52,4 +54,5 @@ register_activation_hook(MUTQAN_FILE,function(){
     MUTQAN_Warranty::install(); MUTQAN_Ratings::install(); MUTQAN_Pricing::install();
     MUTQAN_CRM::install(); MUTQAN_Quality::install(); MUTQAN_Marketing::install(); MUTQAN_Promotions::install();
     MUTQAN_Audit::install(); MUTQAN_Notifications::install(); MUTQAN_Content_SEO::install();
-});
+}
+*/
