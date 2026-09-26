@@ -43,4 +43,8 @@ function mutqan_activate_plugin(){
     }
     flush_rewrite_rules();
 }
-undefined
+add_action('plugins_loaded', function(){
+    require_once MUTQAN_DIR.'src/bootstrap.php';
+    require_once MUTQAN_DIR.'src/Theme/class-mutqan-theme.php';
+    MUTQAN_Core::boot();
+});
