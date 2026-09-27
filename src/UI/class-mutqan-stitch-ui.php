@@ -2,7 +2,7 @@
 defined('ABSPATH') || exit;
 
 final class MUTQAN_Stitch_UI {
-    const VERSION = '1.0.1';
+    const VERSION = '1.0.2';
 
     public static function init() {
         add_filter('template_include', array(__CLASS__, 'template'), 99);
