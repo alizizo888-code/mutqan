@@ -53,6 +53,7 @@ require_once MUTQAN_DIR.'src/Unit06/class-mutqan-analytics.php';
 require_once MUTQAN_DIR.'src/Unit06/class-mutqan-content-seo.php';
 
 require_once MUTQAN_DIR.'src/UI/class-mutqan-app.php';
+require_once MUTQAN_DIR.'src/UI/class-mutqan-stitch-ui.php';
 require_once MUTQAN_DIR.'src/Core/class-mutqan-registry-admin.php';
 require_once MUTQAN_DIR.'src/Core/class-mutqan-permissions-admin.php';
 
