@@ -80,4 +80,4 @@ MUTQAN is a unified WordPress platform for maintenance, field operations, custom
 10. Final release must be tested as one integrated system.
 
 ## Status
-Implementation starts from this repository and will be consolidated into a single production-ready MUTQAN plugin/package.
+The presentation layer is maintained in the repository under `src/UI` and `src/Theme`; WordPress remains the runtime and data store. The main branch deploys only the MUTQAN plugin path.
