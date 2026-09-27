@@ -9,6 +9,7 @@ defined('ABSPATH') || exit;
 require_once MUTQAN_DIR.'src/Core/class-mutqan-registry.php';
 require_once MUTQAN_DIR.'src/Core/class-mutqan-events.php';
 require_once MUTQAN_DIR.'src/Core/class-mutqan-readiness.php';
+require_once MUTQAN_DIR.'src/Core/class-mutqan-portal-guard.php';
 
 require_once MUTQAN_DIR.'src/Unit02/class-mutqan-operations.php';
 require_once MUTQAN_DIR.'src/Unit02/class-mutqan-orders.php';
