@@ -67,14 +67,16 @@ final class MUTQAN_Stitch_UI {
     }
 
     private static function nav() {
-        return array(
-            'overview'=>array('mutqan-control','نظرة عامة والعمليات المباشرة','⌂'),
-            'operations'=>array('mutqan-operations','غرفة العمليات والمهام','☷'),
-            'technicians'=>array('mutqan-supervisor','شبكة الفنيين ومزودي الخدمة','♙'),
-            'inventory'=>array('mutqan-manager','المستودع وقطع الغيار','▦'),
-            'item'=>array('mutqan-owner','تفاصيل الصنف والتتبع','▣'),
-            'fleet'=>array('mutqan-site-supervisor','عُهد السيارات والمخزون الميداني','▰'),
+        $view = self::view();
+        $labels = array(
+            'overview'=>array('mutqan-control','مركز التحكم','⌂'),
+            'operations'=>array('mutqan-operations','غرفة العمليات','☷'),
+            'technicians'=>array('mutqan-supervisor','الفنيون','♙'),
+            'inventory'=>array('mutqan-manager','المخزون','▦'),
+            'item'=>array('mutqan-owner','تفاصيل الصنف','▣'),
+            'fleet'=>array('mutqan-site-supervisor','عُهد المركبات','▰'),
         );
+        return isset($labels[$view]) ? array($view=>$labels[$view]) : array();
     }
 
     private static function rows($view) {
@@ -104,7 +106,7 @@ final class MUTQAN_Stitch_UI {
     }
 
     private static function shell_header($title,$subtitle) {
-        ?><header class="mq-head"><div><span class="mq-eyebrow">مُتقِن / لوحة التشغيل</span><h1><?php echo esc_html($title); ?></h1><p><?php echo esc_html($subtitle); ?></p></div><div class="mq-head-actions"><span class="mq-ready">● النظام جاهز للتشغيل</span><a href="<?php echo esc_url(admin_url()); ?>">إدارة WordPress</a></div></header><?php
+        ?><header class="mq-head"><div><span class="mq-eyebrow">مُتقِن / لوحة التشغيل</span><h1><?php echo esc_html($title); ?></h1><p><?php echo esc_html($subtitle); ?></p></div><div class="mq-head-actions"><span class="mq-ready">● النظام جاهز للتشغيل</span><?php if (current_user_can('manage_options')): ?><a href="<?php echo esc_url(admin_url()); ?>">إدارة WordPress</a><?php endif; ?></div></header><?php
     }
 
     private static function kpi($label,$value,$note) {
@@ -170,7 +172,7 @@ final class MUTQAN_Stitch_UI {
             'fleet'=>array('إدارة عُهد سيارات الصيانة','المركبات والعهد والمخزون الميداني من قاعدة واحدة.')
         );
         $nav=self::nav();
-        ?><div class="mq-stitch" dir="rtl" data-view="<?php echo esc_attr($view); ?>"><aside class="mq-side"><div class="mq-brand"><strong>مُتقِن</strong><span>أكسجين للصيانة والمقاولات</span></div><div class="mq-live">● النظام جاهز — البيانات التشغيلية نظيفة</div><nav><?php foreach($nav as $key=>$item):$active=$key===$view?' active':'';?><a class="mq-nav<?php echo $active;?>" href="<?php echo esc_url(self::page_url($item[0])); ?>"><i><?php echo esc_html($item[2]);?></i><?php echo esc_html($item[1]);?></a><?php endforeach;?></nav><div class="mq-side-foot"><a href="<?php echo esc_url(admin_url());?>">إدارة WordPress</a><a href="<?php echo esc_url(home_url('/'));?>">الموقع</a></div></aside><main class="mq-main"><?php self::shell_header($titles[$view][0],$titles[$view][1]);?><section class="mq-kpis"><?php self::kpi('الطلبات',$c['orders'],'إجمالي الطلبات');self::kpi('الطلبات النشطة',$c['active_orders'],'غير مغلقة');self::kpi('الفنيون',$c['technicians'],'الحسابات المعتمدة/المسجلة');self::kpi('العملاء',$c['customers'],'حسابات العملاء');self::kpi('الخدمات',$c['services'],'الخدمات النشطة');self::kpi('المخزون',$c['inventory'],'الأصناف النشطة'); ?></section><?php self::render_view($view,$rows,$c);?></main></div><?php
+        ?><div class="mq-stitch" dir="rtl" data-view="<?php echo esc_attr($view); ?>"><aside class="mq-side"><div class="mq-brand"><strong>مُتقِن</strong><span>أكسجين للصيانة والمقاولات</span></div><div class="mq-live">● النظام جاهز — البيانات التشغيلية نظيفة</div><nav><?php foreach($nav as $key=>$item):$active=$key===$view?' active':'';?><a class="mq-nav<?php echo $active;?>" href="<?php echo esc_url(self::page_url($item[0])); ?>"><i><?php echo esc_html($item[2]);?></i><?php echo esc_html($item[1]);?></a><?php endforeach;?></nav><div class="mq-side-foot"><?php if (current_user_can('manage_options')): ?><a href="<?php echo esc_url(admin_url());?>">إدارة WordPress</a><?php endif; ?><a href="<?php echo esc_url(home_url('/'));?>">الموقع</a></div></aside><main class="mq-main"><?php self::shell_header($titles[$view][0],$titles[$view][1]);?><section class="mq-kpis"><?php self::kpi('الطلبات',$c['orders'],'إجمالي الطلبات');self::kpi('الطلبات النشطة',$c['active_orders'],'غير مغلقة');self::kpi('الفنيون',$c['technicians'],'الحسابات المعتمدة/المسجلة');self::kpi('العملاء',$c['customers'],'حسابات العملاء');self::kpi('الخدمات',$c['services'],'الخدمات النشطة');self::kpi('المخزون',$c['inventory'],'الأصناف النشطة'); ?></section><?php self::render_view($view,$rows,$c);?></main></div><?php
     }
 }
 MUTQAN_Stitch_UI::init();
