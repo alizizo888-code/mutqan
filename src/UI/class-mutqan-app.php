@@ -37,7 +37,31 @@ final class MUTQAN_App {
     private static function resolve_view($view) {
         $view = sanitize_key($view);
         $allowed = array('home','customer','customer_services','technician','operations','supervisor','manager','owner','site_admin','control');
-        return in_array($view, $allowed, true) ? $view : self::role_to_view(self::role());
+        if (!in_array($view, $allowed, true)) return self::role_to_view(self::role());
+
+        if (class_exists('MUTQAN_Portal_Guard')) {
+            $slug = get_post_field('post_name', get_queried_object_id());
+            $expected = MUTQAN_Portal_Guard::expected_view($slug);
+            if ($expected && $expected !== $view && !current_user_can('manage_options')) {
+                return self::role_to_view(self::role());
+            }
+        }
+
+        $actual = self::role();
+        $role_views = array(
+            'mutqan_customer'=>array('customer','customer_services'),
+            'mutqan_technician'=>array('technician'),
+            'mutqan_operations'=>array('operations'),
+            'mutqan_supervisor'=>array('supervisor'),
+            'mutqan_manager'=>array('manager'),
+            'mutqan_owner'=>array('owner','control'),
+            'mutqan_site_admin'=>array('site_admin','control'),
+            'mutqan_partner'=>array('home'),
+        );
+        if (isset($role_views[$actual]) && !in_array($view, $role_views[$actual], true) && !current_user_can('manage_options')) {
+            return self::role_to_view($actual);
+        }
+        return $view;
     }
 
     private static function role_to_view($role) {
