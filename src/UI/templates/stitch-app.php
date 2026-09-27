@@ -1,0 +1,3 @@
+<?php
+defined('ABSPATH') || exit;
+?><!doctype html><html <?php language_attributes(); ?> dir="rtl"><head><meta charset="<?php bloginfo('charset'); ?>"><meta name="viewport" content="width=device-width,initial-scale=1"><title><?php echo esc_html(wp_get_document_title()); ?></title><?php wp_head(); ?></head><body class="mq-stitch-body"><?php MUTQAN_Stitch_UI::render(); ?><?php wp_footer(); ?></body></html>
