@@ -2,7 +2,7 @@
 defined('ABSPATH') || exit;
 
 final class MUTQAN_Stitch_UI {
-    const VERSION = '1.0.2';
+    const VERSION = '2.0.0';
 
     public static function init() {
         add_filter('template_include', array(__CLASS__, 'template'), 99);
@@ -17,6 +17,9 @@ final class MUTQAN_Stitch_UI {
             'mutqan-manager' => 'inventory',
             'mutqan-owner' => 'item',
             'mutqan-site-supervisor' => 'fleet',
+            'mutqan-operations-ai' => 'ai',
+            'mutqan-owner-ai' => 'ai',
+            'mutqan-whatsapp' => 'whatsapp',
         );
     }
 
@@ -75,8 +78,10 @@ final class MUTQAN_Stitch_UI {
             'inventory'=>array('mutqan-manager','المخزون','▦'),
             'item'=>array('mutqan-owner','تفاصيل الصنف','▣'),
             'fleet'=>array('mutqan-site-supervisor','عُهد المركبات','▰'),
+            'ai'=>array('mutqan-operations-ai','مركز الذكاء الاصطناعي','auto_awesome'),
+            'whatsapp'=>array('mutqan-whatsapp','مركز WhatsApp','chat'),
         );
-        return isset($labels[$view]) ? array($view=>$labels[$view]) : array();
+        return $labels;
     }
 
     private static function rows($view) {
@@ -155,6 +160,22 @@ final class MUTQAN_Stitch_UI {
             ?><section class="mq-item"><div class="mq-panel"><div class="mq-panel-title"><div><span class="mq-eyebrow">المستودع / التتبع</span><h2><?php echo esc_html($r?$r['name']:'تفاصيل الصنف'); ?></h2></div><button type="button">طباعة QR</button></div><?php if(!$r)self::empty('لم يتم اختيار صنف','اختر صنفًا من شاشة المستودع لعرض تفاصيله.');else{?><div class="mq-detail-grid"><?php foreach(array('sku'=>'SKU','warehouse'=>'المستودع','quantity'=>'الكمية','reserved'=>'المحجوز','unit_cost'=>'تكلفة الوحدة','reorder_level'=>'حد إعادة الطلب') as $k=>$label): ?><div><span><?php echo esc_html($label); ?></span><b><?php echo esc_html($r[$k]); ?><?php echo $k==='unit_cost'?' ر.س':''; ?></b></div><?php endforeach; ?></div><?php } ?></div><aside class="mq-panel"><h2>جواز التتبع الرقمي</h2><p>جاهز لربط QR والباركود وسجل التركيب والضمان بالبيانات الفعلية.</p><div class="mq-qr">QR</div></aside></section><?php
             return;
         }
+        if($view==='ai'){
+            ?><div class="mq-command-grid">
+              <section class="mq-panel mq-command-hero"><div><span class="mq-eyebrow">MUTQAN AI CONTROL</span><h2>الذكاء الاصطناعي تحت تحكم العمليات</h2><p>لا توجد بيانات أو مفاتيح وهمية. كل مزود غير متصل يظهر كـ SETUP REQUIRED.</p></div><span class="mq-status good">واجهة التحكم جاهزة</span></section>
+              <section class="mq-panel"><div class="mq-panel-title"><h2>المزودات</h2><span>Server Side</span></div><div class="mq-settings-grid"><div><b>AI Provider</b><small>غير متصل</small><span class="mq-status">SETUP REQUIRED</span></div><div><b>Speech-to-Text</b><small>الصوت الوارد</small><span class="mq-status">SETUP REQUIRED</span></div><div><b>Text-to-Speech</b><small>الصوت الصادر</small><span class="mq-status">SETUP REQUIRED</span></div><div><b>WhatsApp AI</b><small>محادثات العملاء</small><span class="mq-status">SETUP REQUIRED</span></div></div></section>
+              <section class="mq-panel"><div class="mq-panel-title"><h2>سياسات الذكاء الاصطناعي</h2><span>قابلة للربط</span></div><div class="mq-settings-grid"><div><b>التفاوض على السعر</b><small>يعمل فقط وفق حد أدنى محفوظ في النظام</small></div><div><b>تحويل المحادثة</b><small>تصعيد إلى موظف عند الحاجة</small></div><div><b>إنشاء الطلب</b><small>بعد تأكيد العميل</small></div><div><b>متابعة الطلب</b><small>تعتمد على حالة الطلب الفعلية</small></div></div></section>
+            </div><?php
+            return;
+        }
+        if($view==='whatsapp'){
+            ?><div class="mq-command-grid">
+              <section class="mq-panel mq-command-hero"><div><span class="mq-eyebrow">WHATSAPP BUSINESS CENTER</span><h2>صندوق واتساب موحد</h2><p>الواجهة مجهزة لربط الحسابات والمحادثات والعملاء والإشعارات دون تخزين أسرار في المتصفح.</p></div><span class="mq-status">SETUP REQUIRED</span></section>
+              <section class="mq-panel"><div class="mq-panel-title"><h2>الحسابات المتصلة</h2><span>0 حساب</span></div><?php self::empty('لا توجد حسابات WhatsApp متصلة','أضف موصل WhatsApp من إعدادات النظام قبل استقبال المحادثات.'); ?></section>
+              <section class="mq-panel"><div class="mq-panel-title"><h2>دليل جهات الاتصال الموحد</h2><span>Customer → WhatsApp Account</span></div><?php self::empty('لا توجد جهات اتصال','ستظهر هنا الجهات المرتبطة بحسابات WhatsApp الفعلية.'); ?></section>
+            </div><?php
+            return;
+        }
         if($view==='fleet'){
             self::table_search('كود المركبة أو اللوحة أو الفني');
             ?><section class="mq-panel"><div class="mq-panel-title"><h2>عُهد السيارات والمخزون الميداني</h2><span><?php echo count($rows); ?> مركبة</span></div><?php if(!$rows)self::empty('لا توجد مركبات مسجلة','تم تنظيف بيانات الأسطول. أضف أول مركبة عند بدء التشغيل.');else{?><div class="mq-table-wrap"><table><thead><tr><th>المركبة</th><th>اللوحة</th><th>الفني</th><th>الحالة</th><th>السعة</th><th>ملاحظات</th></tr></thead><tbody><?php foreach($rows as $r){$u=$r['technician_id']?get_userdata((int)$r['technician_id']):null;?><tr data-mq-row><td><b><?php echo esc_html($r['name']); ?></b><small><?php echo esc_html($r['vehicle_code']); ?></small></td><td><?php echo esc_html($r['plate']); ?></td><td><?php echo esc_html($u?$u->display_name:'غير مسند'); ?></td><td><span class="mq-status"><?php echo esc_html($r['status']); ?></span></td><td><?php echo esc_html($r['capacity']); ?></td><td><?php echo esc_html($r['notes']); ?></td></tr><?php } ?></tbody></table></div><?php } ?></section><?php
@@ -169,7 +190,9 @@ final class MUTQAN_Stitch_UI {
             'technicians'=>array('إدارة شبكة الفنيين ومزودي الخدمة','التسجيل والاعتماد والأداء دون بيانات تجريبية.'),
             'inventory'=>array('المستودع وقطع الغيار المركزية','الكميات والتكلفة والحالة مرتبطة بجدول المخزون.'),
             'item'=>array('تفاصيل الصنف وبيانات التتبع','بطاقة رقمية قابلة للربط بالـQR والضمان وسجل الاستخدام.'),
-            'fleet'=>array('إدارة عُهد سيارات الصيانة','المركبات والعهد والمخزون الميداني من قاعدة واحدة.')
+            'fleet'=>array('إدارة عُهد سيارات الصيانة','المركبات والعهد والمخزون الميداني من قاعدة واحدة.'),
+            'ai'=>array('مركز الذكاء الاصطناعي','إدارة مزودات AI والصوت والتفاوض والتحويل والمتابعة من مركز العمليات.'),
+            'whatsapp'=>array('مركز WhatsApp Business','الحسابات والمحادثات والإشعارات وربط العميل بالحساب المناسب.')
         );
         $nav=self::nav();
         ?><div class="mq-stitch" dir="rtl" data-view="<?php echo esc_attr($view); ?>"><aside class="mq-side"><div class="mq-brand"><strong>مُتقِن</strong><span>أكسجين للصيانة والمقاولات</span></div><div class="mq-live">● النظام جاهز — البيانات التشغيلية نظيفة</div><nav><?php foreach($nav as $key=>$item):$active=$key===$view?' active':'';?><a class="mq-nav<?php echo $active;?>" href="<?php echo esc_url(self::page_url($item[0])); ?>"><i><?php echo esc_html($item[2]);?></i><?php echo esc_html($item[1]);?></a><?php endforeach;?></nav><div class="mq-side-foot"><?php if (current_user_can('manage_options')): ?><a href="<?php echo esc_url(admin_url());?>">إدارة WordPress</a><?php endif; ?><a href="<?php echo esc_url(home_url('/'));?>">الموقع</a></div></aside><main class="mq-main"><?php self::shell_header($titles[$view][0],$titles[$view][1]);?><section class="mq-kpis"><?php self::kpi('الطلبات',$c['orders'],'إجمالي الطلبات');self::kpi('الطلبات النشطة',$c['active_orders'],'غير مغلقة');self::kpi('الفنيون',$c['technicians'],'الحسابات المعتمدة/المسجلة');self::kpi('العملاء',$c['customers'],'حسابات العملاء');self::kpi('الخدمات',$c['services'],'الخدمات النشطة');self::kpi('المخزون',$c['inventory'],'الأصناف النشطة'); ?></section><?php self::render_view($view,$rows,$c);?></main></div><?php
