@@ -11,7 +11,7 @@ final class MUTQAN_Installer {
         $version = defined('MUTQAN_VERSION') ? MUTQAN_VERSION : '0';
         if (!get_option(self::PENDING_OPTION, false) && (string)get_option(self::SCHEMA_OPTION, '') === $version) return true;
         $errors = array();
-        $installers = array('MUTQAN_Audit','MUTQAN_Operations','MUTQAN_GPS','MUTQAN_Communications','MUTQAN_Field_Execution','MUTQAN_Inventory','MUTQAN_Fleet','MUTQAN_Services','MUTQAN_Finance','MUTQAN_Billing','MUTQAN_Wallets','MUTQAN_Wallet_Topup_Requests','MUTQAN_Commissions','MUTQAN_Advances','MUTQAN_Accounting','MUTQAN_Expenses','MUTQAN_Settlements','MUTQAN_Warranty','MUTQAN_Ratings','MUTQAN_Pricing','MUTQAN_CRM','MUTQAN_Quality','MUTQAN_Marketing','MUTQAN_Promotions','MUTQAN_Notifications','MUTQAN_Content_SEO');
+        $installers = array('MUTQAN_Audit','MUTQAN_Operations','MUTQAN_GPS','MUTQAN_Communications','MUTQAN_Field_Execution','MUTQAN_Inventory','MUTQAN_Fleet','MUTQAN_Services','MUTQAN_Finance','MUTQAN_Billing','MUTQAN_Wallets','MUTQAN_Wallet_Topup_Requests','MUTQAN_Commissions','MUTQAN_Advances','MUTQAN_Accounting','MUTQAN_Expenses','MUTQAN_Settlements','MUTQAN_Warranty','MUTQAN_Ratings','MUTQAN_Pricing','MUTQAN_CRM','MUTQAN_Quality','MUTQAN_Marketing','MUTQAN_Promotions','MUTQAN_Notifications','MUTQAN_Content_SEO','MUTQAN_WhatsApp');
         foreach ($installers as $class) {
             if (!class_exists($class)) { $errors[$class] = 'installer_class_not_loaded'; continue; }
             if (!method_exists($class, 'install')) continue;
