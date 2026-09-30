@@ -2,6 +2,13 @@ document.addEventListener('DOMContentLoaded',function(){
   'use strict';
   var root=document.querySelector('.mq-stitch');
   if(!root)return;
+  var menu=root.querySelector('[data-mq-menu]');
+  var backdrop=root.querySelector('[data-mq-backdrop]');
+  function closeMenu(){root.classList.remove('mq-menu-open');}
+  if(menu)menu.addEventListener('click',function(){root.classList.toggle('mq-menu-open');});
+  if(backdrop)backdrop.addEventListener('click',closeMenu);
+  root.querySelectorAll('.mq-nav').forEach(function(link){link.addEventListener('click',closeMenu);});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')closeMenu();});
 
   function esc(v){
     return String(v==null?'':v).replace(/[&<>"']/g,function(c){
