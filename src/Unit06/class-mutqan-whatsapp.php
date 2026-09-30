@@ -216,7 +216,7 @@ final class MUTQAN_WhatsApp {
             'contacts'=>(int)$wpdb->get_var("SELECT COUNT(*) FROM $c"),
             'conversations'=>(int)$wpdb->get_var("SELECT COUNT(*) FROM $v WHERE status='open'"),
             'messages'=>(int)$wpdb->get_var("SELECT COUNT(*) FROM $m"),
-            'unread'=>(int)$wpdb->get_var("SELECT COUNT(*) FROM $n WHERE status='unread'),
+            'unread'=>(int)$wpdb->get_var("SELECT COUNT(*) FROM $n WHERE status='unread'"),
         ));
     }
 
