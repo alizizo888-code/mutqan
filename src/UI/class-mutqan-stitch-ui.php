@@ -66,6 +66,7 @@ final class MUTQAN_Stitch_UI {
     }
 
     private static function view() {
+        if(isset($_GET['mq_view'])) return sanitize_key(wp_unslash($_GET['mq_view']));
         return isset($GLOBALS['mutqan_stitch_view']) ? sanitize_key($GLOBALS['mutqan_stitch_view']) : 'overview';
     }
 
@@ -106,6 +107,16 @@ final class MUTQAN_Stitch_UI {
     }
 
     private static function page_url($slug) {
+        $routes=array(
+            'mutqan-operations-ai'=>array('mutqan-operations','ai'),
+            'mutqan-owner-ai'=>array('mutqan-owner','ai'),
+            'mutqan-whatsapp'=>array('mutqan-operations','whatsapp'),
+        );
+        if(isset($routes[$slug])){
+            $p=get_page_by_path($routes[$slug][0]);
+            $url=$p?get_permalink($p):home_url('/'.$routes[$slug][0].'/');
+            return add_query_arg('mq_view',$routes[$slug][1],$url);
+        }
         $p=get_page_by_path($slug);
         return $p?get_permalink($p):home_url('/'.$slug.'/');
     }
