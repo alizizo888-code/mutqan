@@ -81,3 +81,20 @@ MUTQAN is a unified WordPress platform for maintenance, field operations, custom
 
 ## Status
 The presentation layer is maintained in the repository under `src/UI` and `src/Theme`; WordPress remains the runtime and data store. The main branch deploys only the MUTQAN plugin path.
+
+
+## MUTQAN 0.7.0 / Next-Gen UI
+The current WordPress implementation remains the production source of truth. The uploaded feature export is mapped into the existing PHP/MySQL/REST architecture; it is not treated as a standalone React runtime.
+
+### New in this update
+- Responsive Stitch shell for desktop, tablet and phone.
+- Accessible Material Symbols navigation and touch targets.
+- Mobile drawer navigation with safe-area support.
+- AI readiness control based on real server-side configuration.
+- Connector-neutral multi-account WhatsApp data layer.
+- WhatsApp accounts, contacts, conversations, messages, notifications, routing and audit tables.
+- Unified WhatsApp command-center UI with customer → account → conversation → order mapping.
+- Explicit SETUP REQUIRED state for unconfigured external providers and QR connectors.
+- No fabricated QR codes, credentials or operational records.
+
+See `docs/MUTQAN-NEXT-GEN-IMPORT-MATRIX.md` for the feature mapping from the uploaded export.
