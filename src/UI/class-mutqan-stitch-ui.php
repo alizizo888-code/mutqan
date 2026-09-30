@@ -73,12 +73,12 @@ final class MUTQAN_Stitch_UI {
     private static function nav() {
         $view = self::view();
         $labels = array(
-            'overview'=>array('mutqan-control','مركز التحكم','⌂'),
-            'operations'=>array('mutqan-operations','غرفة العمليات','☷'),
-            'technicians'=>array('mutqan-supervisor','الفنيون','♙'),
-            'inventory'=>array('mutqan-manager','المخزون','▦'),
-            'item'=>array('mutqan-owner','تفاصيل الصنف','▣'),
-            'fleet'=>array('mutqan-site-supervisor','عُهد المركبات','▰'),
+            'overview'=>array('mutqan-control','مركز التحكم','dashboard'),
+            'operations'=>array('mutqan-operations','غرفة العمليات','monitor_heart'),
+            'technicians'=>array('mutqan-supervisor','الفنيون','engineering'),
+            'inventory'=>array('mutqan-manager','المخزون','inventory_2'),
+            'item'=>array('mutqan-owner','تفاصيل الصنف','qr_code_2'),
+            'fleet'=>array('mutqan-site-supervisor','عُهد المركبات','local_shipping'),
             'ai'=>array('mutqan-operations-ai','مركز الذكاء الاصطناعي','auto_awesome'),
             'whatsapp'=>array('mutqan-whatsapp','مركز WhatsApp','chat'),
         );
@@ -206,7 +206,7 @@ final class MUTQAN_Stitch_UI {
             'whatsapp'=>array('مركز WhatsApp Business','الحسابات والمحادثات والإشعارات وربط العميل بالحساب المناسب.')
         );
         $nav=self::nav();
-        ?><div class="mq-stitch" dir="rtl" data-view="<?php echo esc_attr($view); ?>"><aside class="mq-side"><div class="mq-brand"><strong>مُتقِن</strong><span>أكسجين للصيانة والمقاولات</span></div><div class="mq-live">● النظام جاهز — البيانات التشغيلية نظيفة</div><nav><?php foreach($nav as $key=>$item):$active=$key===$view?' active':'';?><a class="mq-nav<?php echo $active;?>" href="<?php echo esc_url(self::page_url($item[0])); ?>"><i><?php echo esc_html($item[2]);?></i><?php echo esc_html($item[1]);?></a><?php endforeach;?></nav><div class="mq-side-foot"><?php if (current_user_can('manage_options')): ?><a href="<?php echo esc_url(admin_url());?>">إدارة WordPress</a><?php endif; ?><a href="<?php echo esc_url(home_url('/'));?>">الموقع</a></div></aside><main class="mq-main"><?php self::shell_header($titles[$view][0],$titles[$view][1]);?><section class="mq-kpis"><?php self::kpi('الطلبات',$c['orders'],'إجمالي الطلبات');self::kpi('الطلبات النشطة',$c['active_orders'],'غير مغلقة');self::kpi('الفنيون',$c['technicians'],'الحسابات المعتمدة/المسجلة');self::kpi('العملاء',$c['customers'],'حسابات العملاء');self::kpi('الخدمات',$c['services'],'الخدمات النشطة');self::kpi('المخزون',$c['inventory'],'الأصناف النشطة'); ?></section><?php self::render_view($view,$rows,$c);?></main></div><?php
+        ?><div class="mq-stitch" dir="rtl" data-view="<?php echo esc_attr($view); ?>"><button class="mq-mobile-menu" type="button" data-mq-menu aria-label="فتح القائمة"><span class="material-symbols-outlined">menu</span></button><div class="mq-mobile-backdrop" data-mq-backdrop></div><aside class="mq-side"><div class="mq-brand"><strong>مُتقِن</strong><span>أكسجين للصيانة والمقاولات</span></div><div class="mq-live">● النظام جاهز — البيانات التشغيلية نظيفة</div><nav><?php foreach($nav as $key=>$item):$active=$key===$view?' active':'';?><a class="mq-nav<?php echo $active;?>" href="<?php echo esc_url(self::page_url($item[0])); ?>" aria-label="<?php echo esc_attr($item[1]); ?>"><i class="material-symbols-outlined" aria-hidden="true"><?php echo esc_html($item[2]);?></i><span><?php echo esc_html($item[1]);?></span></a><?php endforeach;?></nav><div class="mq-side-foot"><?php if (current_user_can('manage_options')): ?><a href="<?php echo esc_url(admin_url());?>">إدارة WordPress</a><?php endif; ?><a href="<?php echo esc_url(home_url('/'));?>">الموقع</a></div></aside><main class="mq-main"><?php self::shell_header($titles[$view][0],$titles[$view][1]);?><section class="mq-kpis"><?php self::kpi('الطلبات',$c['orders'],'إجمالي الطلبات');self::kpi('الطلبات النشطة',$c['active_orders'],'غير مغلقة');self::kpi('الفنيون',$c['technicians'],'الحسابات المعتمدة/المسجلة');self::kpi('العملاء',$c['customers'],'حسابات العملاء');self::kpi('الخدمات',$c['services'],'الخدمات النشطة');self::kpi('المخزون',$c['inventory'],'الأصناف النشطة'); ?></section><?php self::render_view($view,$rows,$c);?></main></div><?php
     }
 }
 MUTQAN_Stitch_UI::init();
