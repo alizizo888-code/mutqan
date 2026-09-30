@@ -20,3 +20,77 @@
 .mq-setup strong{display:block;color:#795b24;font-size:12px;margin-bottom:3px}
 .mq-setup span{font-size:9px;color:#96733b}
 @media(max-width:900px){.mq-command-grid{grid-template-columns:1fr}.mq-command-grid .mq-command-hero{grid-column:auto;display:block}.mq-settings-grid{grid-template-columns:1fr}}
+
+/* MUTQAN responsive design system — phone + tablet */
+html{scroll-behavior:smooth}
+body.mq-stitch-body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+.mq-mobile-menu,.mq-mobile-backdrop{display:none}
+.mq-side{z-index:50}
+.mq-nav{min-height:44px}
+.mq-nav i.material-symbols-outlined{font-family:"Material Symbols Outlined";font-size:21px;line-height:1;font-style:normal;font-weight:500;font-variation-settings:"FILL" 0,"wght" 500,"GRAD" 0,"opsz" 24}
+.mq-nav.active i{font-variation-settings:"FILL" 1,"wght" 600}
+.mq-panel,.mq-kpi,.mq-head,.mq-toolbar button,.mq-toolbar label{transition:box-shadow .2s ease,border-color .2s ease,transform .2s ease}
+.mq-panel:focus-within,.mq-kpi:focus-within{border-color:#8fd8bd}
+.mq-table-wrap{-webkit-overflow-scrolling:touch}
+.mq-table-wrap table{min-width:760px}
+.mq-main{padding-bottom:32px}
+@media (min-width:851px) and (max-width:1180px){
+  .mq-side{width:235px;flex-basis:235px;padding:14px}
+  .mq-main{padding:14px}
+  .mq-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .mq-grid-2,.mq-item{grid-template-columns:1fr}
+  .mq-head h1{font-size:22px}
+}
+@media (max-width:850px){
+  .mq-stitch{display:block;min-height:100svh}
+  .mq-side{position:fixed;inset:0 auto 0 0;width:min(86vw,330px);height:100svh;transform:translateX(-105%);transition:transform .24s ease;box-shadow:0 20px 60px rgba(11,28,48,.18);overflow:auto}
+  .mq-stitch.mq-menu-open .mq-side{transform:translateX(0)}
+  .mq-mobile-backdrop{position:fixed;inset:0;background:rgba(4,13,25,.42);z-index:45;backdrop-filter:blur(2px)}
+  .mq-stitch.mq-menu-open .mq-mobile-backdrop{display:block}
+  .mq-mobile-menu{display:grid;place-items:center;position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);right:10px;width:44px;height:44px;border:1px solid var(--mq-line);border-radius:13px;background:rgba(255,255,255,.94);color:var(--mq-ink);z-index:40;box-shadow:0 8px 22px rgba(11,28,48,.12)}
+  .mq-mobile-menu .material-symbols-outlined{font-size:23px}
+  .mq-main{padding:10px 10px 84px}
+  .mq-head{padding:16px 14px 14px;border-radius:15px;padding-right:62px}
+  .mq-head h1{font-size:19px;line-height:1.4}
+  .mq-head p{font-size:10px;line-height:1.7}
+  .mq-head-actions{gap:6px}
+  .mq-head-actions a,.mq-head-actions .mq-ready{font-size:9px;padding:7px 9px}
+  .mq-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:8px 0}
+  .mq-kpi{padding:10px;border-radius:12px}
+  .mq-kpi strong{font-size:19px}
+  .mq-kpi span,.mq-kpi small{font-size:8px}
+  .mq-grid-2,.mq-item,.mq-command-grid{grid-template-columns:1fr}
+  .mq-panel{padding:12px;border-radius:13px}
+  .mq-panel-title h2{font-size:13px}
+  .mq-panel-title span{font-size:8px}
+  .mq-map{height:230px}
+  .mq-event-empty{height:180px}
+  .mq-toolbar{position:sticky;top:0;z-index:10;background:var(--mq-bg);padding:5px 0}
+  .mq-toolbar label{min-width:0}
+  .mq-toolbar button{min-width:82px}
+  .mq-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mq-settings-grid{grid-template-columns:1fr}
+  .mq-command-grid .mq-command-hero{display:block}
+  .mq-command-hero h2{font-size:18px}
+  .mq-command-hero .mq-status{display:inline-flex;margin-top:10px}
+  .mq-table-wrap table{min-width:700px}
+  .mq-side-foot{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 12px)}
+}
+@media (max-width:560px){
+  .mq-main{padding-left:8px;padding-right:8px}
+  .mq-head{padding-right:58px}
+  .mq-head-actions{display:grid;grid-template-columns:1fr}
+  .mq-head-actions .mq-ready{width:max-content}
+  .mq-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mq-kpi strong{font-size:17px}
+  .mq-detail-grid{grid-template-columns:1fr 1fr}
+  .mq-map{height:205px}
+  .mq-panel-title{align-items:flex-start}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}
+}
+@media (pointer:coarse){
+  .mq-nav,.mq-toolbar button,.mq-head-actions a{min-height:44px}
+  .mq-toolbar input{font-size:16px}
+}
