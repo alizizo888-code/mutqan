@@ -62,6 +62,11 @@ final class MUTQAN_Stitch_UI {
             'services'=>(int)$wpdb->get_var("SELECT COUNT(*) FROM {$services} WHERE status='active'"),
             'customers'=>(int)$wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->users} u INNER JOIN {$wpdb->usermeta} m ON m.user_id=u.ID AND m.meta_key='{$wpdb->prefix}capabilities' WHERE m.meta_value LIKE '%mutqan_customer%'"),
             'technicians'=>(int)$wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->users} u INNER JOIN {$wpdb->usermeta} m ON m.user_id=u.ID AND m.meta_key='{$wpdb->prefix}capabilities' WHERE m.meta_value LIKE '%mutqan_technician%'"),
+            'wa_accounts'=>class_exists('MUTQAN_WhatsApp')?(int)$wpdb->get_var("SELECT COUNT(*) FROM ".MUTQAN_WhatsApp::table_name('accounts')." WHERE active=1"):0,
+            'wa_connected'=>class_exists('MUTQAN_WhatsApp')?(int)$wpdb->get_var("SELECT COUNT(*) FROM ".MUTQAN_WhatsApp::table_name('accounts')." WHERE active=1 AND status='connected'"):0,
+            'wa_contacts'=>class_exists('MUTQAN_WhatsApp')?(int)$wpdb->get_var("SELECT COUNT(*) FROM ".MUTQAN_WhatsApp::table_name('contacts')):0,
+            'wa_open'=>class_exists('MUTQAN_WhatsApp')?(int)$wpdb->get_var("SELECT COUNT(*) FROM ".MUTQAN_WhatsApp::table_name('conversations')." WHERE status='open'"):0,
+            'wa_unread'=>class_exists('MUTQAN_WhatsApp')?(int)$wpdb->get_var("SELECT COUNT(*) FROM ".MUTQAN_WhatsApp::table_name('notifications')." WHERE status='unread'"):0,
         );
     }
 
@@ -181,9 +186,29 @@ final class MUTQAN_Stitch_UI {
         }
         if($view==='whatsapp'){
             ?><div class="mq-command-grid">
-              <section class="mq-panel mq-command-hero"><div><span class="mq-eyebrow">WHATSAPP BUSINESS CENTER</span><h2>صندوق واتساب موحد</h2><p>الواجهة مجهزة لربط الحسابات والمحادثات والعملاء والإشعارات دون تخزين أسرار في المتصفح.</p></div><span class="mq-status">SETUP REQUIRED</span></section>
-              <section class="mq-panel"><div class="mq-panel-title"><h2>الحسابات المتصلة</h2><span>0 حساب</span></div><?php self::empty('لا توجد حسابات WhatsApp متصلة','أضف موصل WhatsApp من إعدادات النظام قبل استقبال المحادثات.'); ?></section>
-              <section class="mq-panel"><div class="mq-panel-title"><h2>دليل جهات الاتصال الموحد</h2><span>Customer → WhatsApp Account</span></div><?php self::empty('لا توجد جهات اتصال','ستظهر هنا الجهات المرتبطة بحسابات WhatsApp الفعلية.'); ?></section>
+              <section class="mq-panel mq-command-hero"><div><span class="mq-eyebrow">WHATSAPP BUSINESS CENTER</span><h2>مركز WhatsApp متعدد الحسابات</h2><p>حسابات غير محدودة منطقيًا، صندوق وارد موحد، ربط العميل بالرقم والمحادثة والطلب، وإشعارات قابلة للتدقيق.</p></div><span class="mq-status"><?php echo $c['wa_connected']?'متصل '.$c['wa_connected']:'SETUP REQUIRED'; ?></span></section>
+              <section class="mq-panel"><div class="mq-panel-title"><h2>لوحة الحسابات</h2><span><?php echo esc_html($c['wa_accounts']); ?> حساب</span></div>
+                <div class="mq-detail-grid">
+                  <div><span>الحسابات النشطة</span><b><?php echo esc_html($c['wa_accounts']); ?></b></div>
+                  <div><span>المتصلة فعليًا</span><b><?php echo esc_html($c['wa_connected']); ?></b></div>
+                  <div><span>المحادثات المفتوحة</span><b><?php echo esc_html($c['wa_open']); ?></b></div>
+                  <div><span>إشعارات غير مقروءة</span><b><?php echo esc_html($c['wa_unread']); ?></b></div>
+                </div>
+                <?php if(!$c['wa_accounts']) self::empty('لا توجد حسابات WhatsApp بعد','أضف الحساب من خلال موصل رسمي أو موصل QR فعلي. لا يتم توليد QR وهمي.'); ?>
+              </section>
+              <section class="mq-panel"><div class="mq-panel-title"><h2>Unified Inbox</h2><span>العميل ← الحساب ← المحادثة ← الطلب</span></div>
+                <?php if(!$c['wa_open']) self::empty('صندوق الوارد فارغ','ستظهر المحادثات الفعلية هنا بعد وصول Webhook أو موصل الرسائل.'); ?>
+                <div class="mq-setup"><strong>حالة الموصلات</strong><span>Cloud/API وProvider وQR Connector مدعومة كبنية بيانات. التنفيذ الفعلي للموصل الخارجي مطلوب قبل الاتصال.</span></div>
+              </section>
+              <section class="mq-panel"><div class="mq-panel-title"><h2>دليل جهات الاتصال الموحد</h2><span><?php echo esc_html($c['wa_contacts']); ?> جهة</span></div>
+                <?php if(!$c['wa_contacts']) self::empty('لا توجد جهات اتصال','عند وصول أول رسالة يتم إنشاء/ربط جهة الاتصال ثم ربطها بالعميل والطلب عند توفر البيانات.'); ?>
+                <div class="mq-detail-grid">
+                  <div><span>Customer ID</span><b>مرتبط عند التعرف</b></div>
+                  <div><span>WhatsApp Account</span><b>يُحفظ لكل جهة</b></div>
+                  <div><span>Conversation</span><b>سجل مستقل</b></div>
+                  <div><span>Order</span><b>قابل للربط</b></div>
+                </div>
+              </section>
             </div><?php
             return;
         }
