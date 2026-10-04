@@ -7,6 +7,7 @@ final class MUTQAN_Stitch_UI {
     public static function init() {
         add_filter('template_include', array(__CLASS__, 'template'), 99);
         add_action('wp_enqueue_scripts', array(__CLASS__, 'assets'), 99);
+        add_action('admin_post_mutqan_save_ai_settings', array(__CLASS__, 'save_ai_settings'));
     }
 
     private static function map() {
@@ -42,6 +43,26 @@ final class MUTQAN_Stitch_UI {
             'root' => esc_url_raw(rest_url('mutqan/v1')),
             'nonce' => wp_create_nonce('wp_rest'),
         ));
+    }
+
+    public static function save_ai_settings() {
+        if (!current_user_can('manage_options')) wp_die('غير مصرح.');
+        check_admin_referer('mutqan_save_ai_settings');
+
+        $model = sanitize_text_field(wp_unslash($_POST['mutqan_gemini_model'] ?? ''));
+        if ($model !== '') update_option('mutqan_gemini_model', $model);
+
+        // A blank key means "keep current key". A constant in wp-config.php always wins.
+        if (!defined('MUTQAN_GEMINI_API_KEY')) {
+            $key = sanitize_text_field(wp_unslash($_POST['mutqan_gemini_api_key'] ?? ''));
+            if ($key !== '') update_option('mutqan_gemini_api_key', $key);
+        }
+
+        $redirect = wp_get_referer();
+        if (!$redirect) $redirect = self::page_url('mutqan-operations-ai');
+        $redirect = add_query_arg('mq_ai_saved', '1', $redirect);
+        wp_safe_redirect($redirect);
+        exit;
     }
 
     private static function table($class, $fallback) {
@@ -178,11 +199,65 @@ final class MUTQAN_Stitch_UI {
         }
         if($view==='ai'){
             $ai_configured = defined('MUTQAN_GEMINI_API_KEY') ? (bool)MUTQAN_GEMINI_API_KEY : (bool)get_option('mutqan_gemini_api_key','');
-            ?><div class="mq-command-grid">
-              <section class="mq-panel mq-command-hero"><div><span class="mq-eyebrow">MUTQAN AI CONTROL</span><h2>الذكاء الاصطناعي تحت تحكم العمليات</h2><p>لا توجد بيانات أو مفاتيح وهمية. كل مزود غير متصل يظهر كـ SETUP REQUIRED.</p></div><span class="mq-status <?php echo $ai_configured ? "good" : ""; ?>"><?php echo $ai_configured ? "Gemini متصل بالإعداد" : "SETUP REQUIRED"; ?></span></section>
-              <section class="mq-panel"><div class="mq-panel-title"><h2>المزودات</h2><span>Server Side</span></div><div class="mq-settings-grid"><div><b>AI Provider</b><small><?php echo $ai_configured ? "Gemini API key configured server-side" : "لا يوجد مفتاح مزود"; ?></small><span class="mq-status <?php echo $ai_configured ? "good" : ""; ?>"><?php echo $ai_configured ? "READY" : "SETUP REQUIRED"; ?></span></div><div><b>Speech-to-Text</b><small>الصوت الوارد</small><span class="mq-status">SETUP REQUIRED</span></div><div><b>Text-to-Speech</b><small>الصوت الصادر</small><span class="mq-status">SETUP REQUIRED</span></div><div><b>WhatsApp AI</b><small>محادثات العملاء</small><span class="mq-status">SETUP REQUIRED</span></div></div></section>
-              <section class="mq-panel"><div class="mq-panel-title"><h2>سياسات الذكاء الاصطناعي</h2><span>قابلة للربط</span></div><div class="mq-settings-grid"><div><b>التفاوض على السعر</b><small>يعمل فقط وفق حد أدنى محفوظ في النظام</small></div><div><b>تحويل المحادثة</b><small>تصعيد إلى موظف عند الحاجة</small></div><div><b>إنشاء الطلب</b><small>بعد تأكيد العميل</small></div><div><b>متابعة الطلب</b><small>تعتمد على حالة الطلب الفعلية</small></div></div></section>
-            </div><?php
+            $model = get_option('mutqan_gemini_model','gemini-2.5-flash');
+            ?>
+            <div class="mq-command-grid">
+              <section class="mq-panel mq-command-hero">
+                <div><span class="mq-eyebrow">MUTQAN AI CONTROL</span><h2>مركز الذكاء الاصطناعي والإعدادات</h2>
+                <p>صفحة واحدة للتحكم في حالة Gemini والموديل وسياسات الذكاء الاصطناعي. لا يتم عرض المفتاح نفسه داخل الواجهة.</p></div>
+                <span class="mq-status <?php echo $ai_configured ? 'good' : ''; ?>"><?php echo $ai_configured ? 'Gemini جاهز' : 'SETUP REQUIRED'; ?></span>
+              </section>
+
+              <?php if(isset($_GET['mq_ai_saved'])): ?>
+                <div class="mq-setup"><strong>تم حفظ إعدادات MUTQAN AI</strong><span>تم تحديث الإعدادات من نفس صفحة مركز الذكاء الاصطناعي.</span></div>
+              <?php endif; ?>
+
+              <section class="mq-panel">
+                <div class="mq-panel-title"><h2>إعدادات Gemini</h2><span>Server Side</span></div>
+                <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="mq-ai-settings-form">
+                  <input type="hidden" name="action" value="mutqan_save_ai_settings">
+                  <?php wp_nonce_field('mutqan_save_ai_settings'); ?>
+                  <div class="mq-settings-grid">
+                    <div>
+                      <b>Gemini API Key</b>
+                      <small><?php echo defined('MUTQAN_GEMINI_API_KEY') ? 'المفتاح مضبوط من wp-config.php ولا يحتاج إدخاله هنا.' : 'المفتاح محفوظ Server-side. اترك الحقل فارغًا للإبقاء على المفتاح الحالي.'; ?></small>
+                      <?php if(defined('MUTQAN_GEMINI_API_KEY')): ?>
+                        <span class="mq-status good">WP-CONFIG</span>
+                      <?php else: ?>
+                        <input type="password" name="mutqan_gemini_api_key" value="" autocomplete="off" placeholder="أدخل مفتاح Gemini لتغييره">
+                      <?php endif; ?>
+                    </div>
+                    <div>
+                      <b>Gemini Model</b>
+                      <small>الموديل المستخدم في طلبات MUTQAN AI.</small>
+                      <input type="text" name="mutqan_gemini_model" value="<?php echo esc_attr($model); ?>" autocomplete="off">
+                    </div>
+                  </div>
+                  <div style="margin-top:12px"><button class="mq-primary" type="submit">حفظ إعدادات Gemini</button></div>
+                </form>
+              </section>
+
+              <section class="mq-panel">
+                <div class="mq-panel-title"><h2>حالة المزودات</h2><span>الحالة الفعلية</span></div>
+                <div class="mq-settings-grid">
+                  <div><b>AI Provider</b><small><?php echo $ai_configured ? 'Gemini API key configured server-side' : 'لا يوجد مفتاح مزود'; ?></small><span class="mq-status <?php echo $ai_configured ? 'good' : ''; ?>"><?php echo $ai_configured ? 'READY' : 'SETUP REQUIRED'; ?></span></div>
+                  <div><b>Speech-to-Text</b><small>الصوت الوارد</small><span class="mq-status">SETUP REQUIRED</span></div>
+                  <div><b>Text-to-Speech</b><small>الصوت الصادر</small><span class="mq-status">SETUP REQUIRED</span></div>
+                  <div><b>WhatsApp AI</b><small>محادثات العملاء</small><span class="mq-status">SETUP REQUIRED</span></div>
+                </div>
+              </section>
+
+              <section class="mq-panel">
+                <div class="mq-panel-title"><h2>سياسات الذكاء الاصطناعي</h2><span>جزء من مركز التحكم</span></div>
+                <div class="mq-settings-grid">
+                  <div><b>التفاوض على السعر</b><small>يعمل فقط وفق حد أدنى محفوظ في النظام.</small></div>
+                  <div><b>تحويل المحادثة</b><small>تصعيد إلى موظف عند الحاجة.</small></div>
+                  <div><b>إنشاء الطلب</b><small>بعد تأكيد العميل.</small></div>
+                  <div><b>متابعة الطلب</b><small>تعتمد على حالة الطلب الفعلية.</small></div>
+                </div>
+              </section>
+            </div>
+            <?php
             return;
         }
         if($view==='whatsapp'){
