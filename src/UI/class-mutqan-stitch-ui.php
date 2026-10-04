@@ -213,7 +213,7 @@ final class MUTQAN_Stitch_UI {
             $gemini_configured = defined('MUTQAN_GEMINI_API_KEY') ? (bool)MUTQAN_GEMINI_API_KEY : (bool)get_option('mutqan_gemini_api_key','');
             $openai_configured = (defined('MUTQAN_OPENAI_API_KEY') && MUTQAN_OPENAI_API_KEY) || (defined('OPENAI_API_KEY') && OPENAI_API_KEY) || (bool)get_option('mutqan_openai_api_key','');
             $provider = sanitize_key(get_option('mutqan_ai_provider','auto'));
-            if(!in_array($provider,array('auto','gemini','openai'),true)) $provider='auto';
+            if(!in_array($provider,array('auto','wp-ai','gemini','openai'),true)) $provider='auto';
             $gemini_model = get_option('mutqan_gemini_model','gemini-2.5-flash');
             $openai_model = get_option('mutqan_openai_model','gpt-5-mini');
             $serial = get_option('mutqan_openai_connection_serial','');
@@ -241,14 +241,14 @@ final class MUTQAN_Stitch_UI {
                       <small>Auto يستخدم ChatGPT/OpenAI إذا كان مفتاحه متاحًا، ثم Gemini كاحتياط. ويمكن تثبيت مزود محدد.</small>
                       <select name="mutqan_ai_provider">
                         <option value="auto" <?php selected($provider,'auto'); ?>>Auto</option>
-                        <option value="openai" <?php selected($provider,'openai'); ?>>ChatGPT / OpenAI</option>
+                        <option value="wp-ai" <?php selected($provider,'wp-ai'); ?>>WordPress AI Connector (الربط الحالي)</option><option value="openai" <?php selected($provider,'openai'); ?>>ChatGPT / OpenAI API مباشر</option>
                         <option value="gemini" <?php selected($provider,'gemini'); ?>>Google Gemini</option>
                       </select>
                     </div>
                     <div>
                       <b>المزود الفعلي الآن</b>
                       <small>الحالة محسوبة من مفاتيح الاتصال الموجودة Server-side.</small>
-                      <span class="mq-status <?php echo $active_provider!=='none'?'good':''; ?>"><?php echo esc_html($active_provider==='openai'?'ChatGPT / OpenAI':($active_provider==='gemini'?'Gemini':'غير مُعد')); ?></span>
+                      <span class="mq-status <?php echo $active_provider!=='none'?'good':''; ?>"><?php echo esc_html($active_provider==='wp-ai'?'WordPress AI Connector':($active_provider==='openai'?'ChatGPT / OpenAI':($active_provider==='gemini'?'Gemini':'غير مُعد'))); ?></span>
                     </div>
                   </div>
 
@@ -289,7 +289,7 @@ final class MUTQAN_Stitch_UI {
               <section class="mq-panel">
                 <div class="mq-panel-title"><h2>حالة الاتصال الفعلية</h2><span>Server Side</span></div>
                 <div class="mq-settings-grid">
-                  <div><b>ChatGPT / OpenAI</b><small><?php echo $openai_configured ? 'مفتاح الاتصال موجود Server-side.' : 'لا يوجد مفتاح OpenAI معروف لـMUTQAN.'; ?></small><span class="mq-status <?php echo $openai_configured?'good':''; ?>"><?php echo $openai_configured?'READY':'SETUP REQUIRED'; ?></span></div>
+                  <div><b>WordPress AI Connector</b><small>يستخدم موصل WordPress/AI Engine الحالي دون نسخ المفتاح إلى MUTQAN.</small><span class="mq-status <?php echo (function_exists('wp_ai_client_prompt') && function_exists('wp_supports_ai') && wp_supports_ai())?'good':''; ?>"><?php echo (function_exists('wp_ai_client_prompt') && function_exists('wp_supports_ai') && wp_supports_ai())?'AVAILABLE':'SETUP REQUIRED'; ?></span></div><div><b>ChatGPT / OpenAI API مباشر</b><small><?php echo $openai_configured ? 'مفتاح الاتصال موجود Server-side.' : 'لا يوجد مفتاح OpenAI معروف لـMUTQAN.'; ?></small><span class="mq-status <?php echo $openai_configured?'good':''; ?>"><?php echo $openai_configured?'READY':'SETUP REQUIRED'; ?></span></div>
                   <div><b>Gemini</b><small><?php echo $gemini_configured ? 'مفتاح الاتصال موجود Server-side.' : 'لا يوجد مفتاح Gemini معروف لـMUTQAN.'; ?></small><span class="mq-status <?php echo $gemini_configured?'good':''; ?>"><?php echo $gemini_configured?'READY':'SETUP REQUIRED'; ?></span></div>
                   <div><b>Speech-to-Text</b><small>الصوت الوارد</small><span class="mq-status">SETUP REQUIRED</span></div>
                   <div><b>Text-to-Speech</b><small>الصوت الصادر</small><span class="mq-status">SETUP REQUIRED</span></div>
