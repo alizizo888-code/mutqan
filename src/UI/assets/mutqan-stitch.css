@@ -98,3 +98,5 @@ body.mq-stitch-body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
 /* Unified AI settings inside MUTQAN control center */
 .mq-ai-settings-form input[type="password"],.mq-ai-settings-form input[type="text"]{display:block;width:100%;box-sizing:border-box;margin-top:8px;padding:10px 12px;border:1px solid var(--mq-line);border-radius:10px;background:#fff;color:var(--mq-ink);font:inherit}
 .mq-ai-settings-form .mq-primary{border:0;cursor:pointer}
+
+.mq-ai-settings-form select{display:block;width:100%;box-sizing:border-box;margin-top:8px;padding:10px 12px;border:1px solid var(--mq-line);border-radius:10px;background:#fff;color:var(--mq-ink);font:inherit}.mq-ai-settings-form select:focus,.mq-ai-settings-form input:focus{outline:2px solid #67d9a7;outline-offset:1px}
