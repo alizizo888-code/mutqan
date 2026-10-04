@@ -49,14 +49,26 @@ final class MUTQAN_Stitch_UI {
         if (!current_user_can('manage_options')) wp_die('غير مصرح.');
         check_admin_referer('mutqan_save_ai_settings');
 
-        $model = sanitize_text_field(wp_unslash($_POST['mutqan_gemini_model'] ?? ''));
-        if ($model !== '') update_option('mutqan_gemini_model', $model);
+        $provider = sanitize_key(wp_unslash($_POST['mutqan_ai_provider'] ?? 'auto'));
+        if (!in_array($provider, array('auto','gemini','openai'), true)) $provider = 'auto';
+        update_option('mutqan_ai_provider', $provider);
 
-        // A blank key means "keep current key". A constant in wp-config.php always wins.
+        $gemini_model = sanitize_text_field(wp_unslash($_POST['mutqan_gemini_model'] ?? ''));
+        if ($gemini_model !== '') update_option('mutqan_gemini_model', $gemini_model);
         if (!defined('MUTQAN_GEMINI_API_KEY')) {
             $key = sanitize_text_field(wp_unslash($_POST['mutqan_gemini_api_key'] ?? ''));
             if ($key !== '') update_option('mutqan_gemini_api_key', $key);
         }
+
+        $openai_model = sanitize_text_field(wp_unslash($_POST['mutqan_openai_model'] ?? ''));
+        if ($openai_model !== '') update_option('mutqan_openai_model', $openai_model);
+        if (!defined('MUTQAN_OPENAI_API_KEY') && !defined('OPENAI_API_KEY')) {
+            $openai_key = sanitize_text_field(wp_unslash($_POST['mutqan_openai_api_key'] ?? ''));
+            if ($openai_key !== '') update_option('mutqan_openai_api_key', $openai_key);
+        }
+
+        $serial = sanitize_text_field(wp_unslash($_POST['mutqan_openai_connection_serial'] ?? ''));
+        update_option('mutqan_openai_connection_serial', $serial);
 
         $redirect = wp_get_referer();
         if (!$redirect) $redirect = self::page_url('mutqan-operations-ai');
@@ -198,52 +210,89 @@ final class MUTQAN_Stitch_UI {
             return;
         }
         if($view==='ai'){
-            $ai_configured = defined('MUTQAN_GEMINI_API_KEY') ? (bool)MUTQAN_GEMINI_API_KEY : (bool)get_option('mutqan_gemini_api_key','');
-            $model = get_option('mutqan_gemini_model','gemini-2.5-flash');
+            $gemini_configured = defined('MUTQAN_GEMINI_API_KEY') ? (bool)MUTQAN_GEMINI_API_KEY : (bool)get_option('mutqan_gemini_api_key','');
+            $openai_configured = (defined('MUTQAN_OPENAI_API_KEY') && MUTQAN_OPENAI_API_KEY) || (defined('OPENAI_API_KEY') && OPENAI_API_KEY) || (bool)get_option('mutqan_openai_api_key','');
+            $provider = sanitize_key(get_option('mutqan_ai_provider','auto'));
+            if(!in_array($provider,array('auto','gemini','openai'),true)) $provider='auto';
+            $gemini_model = get_option('mutqan_gemini_model','gemini-2.5-flash');
+            $openai_model = get_option('mutqan_openai_model','gpt-5-mini');
+            $serial = get_option('mutqan_openai_connection_serial','');
+            $active_provider = class_exists('MUTQAN_AI') ? MUTQAN_AI::provider() : ($openai_configured ? 'openai' : ($gemini_configured ? 'gemini' : 'none'));
             ?>
             <div class="mq-command-grid">
               <section class="mq-panel mq-command-hero">
-                <div><span class="mq-eyebrow">MUTQAN AI CONTROL</span><h2>مركز الذكاء الاصطناعي والإعدادات</h2>
-                <p>صفحة واحدة للتحكم في حالة Gemini والموديل وسياسات الذكاء الاصطناعي. لا يتم عرض المفتاح نفسه داخل الواجهة.</p></div>
-                <span class="mq-status <?php echo $ai_configured ? 'good' : ''; ?>"><?php echo $ai_configured ? 'Gemini جاهز' : 'SETUP REQUIRED'; ?></span>
+                <div><span class="mq-eyebrow">MUTQAN AI CONTROL</span><h2>مركز الذكاء الاصطناعي الموحد</h2>
+                <p>Gemini وChatGPT/OpenAI في نفس الصفحة. الحفظ والنشر يتمان من هنا مباشرة دون الرجوع إلى إعدادات WordPress.</p></div>
+                <span class="mq-status <?php echo $active_provider!=='none' ? 'good' : ''; ?>"><?php echo esc_html(strtoupper($active_provider)); ?></span>
               </section>
 
               <?php if(isset($_GET['mq_ai_saved'])): ?>
-                <div class="mq-setup"><strong>تم حفظ إعدادات MUTQAN AI</strong><span>تم تحديث الإعدادات من نفس صفحة مركز الذكاء الاصطناعي.</span></div>
+                <div class="mq-setup"><strong>تم نشر إعدادات الذكاء الاصطناعي</strong><span>تم حفظ الإعدادات في قاعدة بيانات MUTQAN وأصبحت هي الإعدادات المستخدمة في الاتصال التالي مباشرة.</span></div>
               <?php endif; ?>
 
               <section class="mq-panel">
-                <div class="mq-panel-title"><h2>إعدادات Gemini</h2><span>Server Side</span></div>
+                <div class="mq-panel-title"><h2>المتحكم الرئيسي بالمزود</h2><span>Publish مباشرة</span></div>
                 <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="mq-ai-settings-form">
                   <input type="hidden" name="action" value="mutqan_save_ai_settings">
                   <?php wp_nonce_field('mutqan_save_ai_settings'); ?>
                   <div class="mq-settings-grid">
                     <div>
-                      <b>Gemini API Key</b>
-                      <small><?php echo defined('MUTQAN_GEMINI_API_KEY') ? 'المفتاح مضبوط من wp-config.php ولا يحتاج إدخاله هنا.' : 'المفتاح محفوظ Server-side. اترك الحقل فارغًا للإبقاء على المفتاح الحالي.'; ?></small>
-                      <?php if(defined('MUTQAN_GEMINI_API_KEY')): ?>
-                        <span class="mq-status good">WP-CONFIG</span>
+                      <b>مزود AI الأساسي</b>
+                      <small>Auto يستخدم ChatGPT/OpenAI إذا كان مفتاحه متاحًا، ثم Gemini كاحتياط. ويمكن تثبيت مزود محدد.</small>
+                      <select name="mutqan_ai_provider">
+                        <option value="auto" <?php selected($provider,'auto'); ?>>Auto</option>
+                        <option value="openai" <?php selected($provider,'openai'); ?>>ChatGPT / OpenAI</option>
+                        <option value="gemini" <?php selected($provider,'gemini'); ?>>Google Gemini</option>
+                      </select>
+                    </div>
+                    <div>
+                      <b>المزود الفعلي الآن</b>
+                      <small>الحالة محسوبة من مفاتيح الاتصال الموجودة Server-side.</small>
+                      <span class="mq-status <?php echo $active_provider!=='none'?'good':''; ?>"><?php echo esc_html($active_provider==='openai'?'ChatGPT / OpenAI':($active_provider==='gemini'?'Gemini':'غير مُعد')); ?></span>
+                    </div>
+                  </div>
+
+                  <div class="mq-settings-grid" style="margin-top:10px">
+                    <div>
+                      <b>ChatGPT / OpenAI Secret API Key</b>
+                      <small><?php echo (defined('MUTQAN_OPENAI_API_KEY') || defined('OPENAI_API_KEY')) ? 'المفتاح مضبوط من wp-config.php ولا يتم عرضه أو استبداله من الواجهة.' : 'المفتاح يُحفظ Server-side فقط. اترك الحقل فارغًا للإبقاء على المفتاح الحالي.'; ?></small>
+                      <?php if(defined('MUTQAN_OPENAI_API_KEY') || defined('OPENAI_API_KEY')): ?>
+                        <span class="mq-status good">SECRET READY — WP-CONFIG</span>
                       <?php else: ?>
-                        <input type="password" name="mutqan_gemini_api_key" value="" autocomplete="off" placeholder="أدخل مفتاح Gemini لتغييره">
+                        <input type="password" name="mutqan_openai_api_key" value="" autocomplete="new-password" placeholder="أدخل المفتاح السري لتغييره">
                       <?php endif; ?>
                     </div>
                     <div>
-                      <b>Gemini Model</b>
-                      <small>الموديل المستخدم في طلبات MUTQAN AI.</small>
-                      <input type="text" name="mutqan_gemini_model" value="<?php echo esc_attr($model); ?>" autocomplete="off">
+                      <b>Serial / Connection ID</b>
+                      <small>المعرّف الخاص بربط ChatGPT/OpenAI داخل MUTQAN. هذا الحقل ليس مفتاحًا سريًا.</small>
+                      <input type="text" name="mutqan_openai_connection_serial" value="<?php echo esc_attr($serial); ?>" autocomplete="off" placeholder="مثال: اتصال-01">
                     </div>
                   </div>
-                  <div style="margin-top:12px"><button class="mq-primary" type="submit">حفظ إعدادات Gemini</button></div>
+
+                  <div class="mq-settings-grid" style="margin-top:10px">
+                    <div>
+                      <b>ChatGPT / OpenAI Model</b>
+                      <small>الموديل الذي سيُستخدم في طلبات MUTQAN.</small>
+                      <input type="text" name="mutqan_openai_model" value="<?php echo esc_attr($openai_model); ?>" autocomplete="off">
+                    </div>
+                    <div>
+                      <b>Gemini Model</b>
+                      <small>الموديل الاحتياطي/البديل حسب اختيار المزود.</small>
+                      <input type="text" name="mutqan_gemini_model" value="<?php echo esc_attr($gemini_model); ?>" autocomplete="off">
+                    </div>
+                  </div>
+
+                  <div style="margin-top:12px"><button class="mq-primary" type="submit">نشر وتحديث إعدادات AI الآن</button></div>
                 </form>
               </section>
 
               <section class="mq-panel">
-                <div class="mq-panel-title"><h2>حالة المزودات</h2><span>الحالة الفعلية</span></div>
+                <div class="mq-panel-title"><h2>حالة الاتصال الفعلية</h2><span>Server Side</span></div>
                 <div class="mq-settings-grid">
-                  <div><b>AI Provider</b><small><?php echo $ai_configured ? 'Gemini API key configured server-side' : 'لا يوجد مفتاح مزود'; ?></small><span class="mq-status <?php echo $ai_configured ? 'good' : ''; ?>"><?php echo $ai_configured ? 'READY' : 'SETUP REQUIRED'; ?></span></div>
+                  <div><b>ChatGPT / OpenAI</b><small><?php echo $openai_configured ? 'مفتاح الاتصال موجود Server-side.' : 'لا يوجد مفتاح OpenAI معروف لـMUTQAN.'; ?></small><span class="mq-status <?php echo $openai_configured?'good':''; ?>"><?php echo $openai_configured?'READY':'SETUP REQUIRED'; ?></span></div>
+                  <div><b>Gemini</b><small><?php echo $gemini_configured ? 'مفتاح الاتصال موجود Server-side.' : 'لا يوجد مفتاح Gemini معروف لـMUTQAN.'; ?></small><span class="mq-status <?php echo $gemini_configured?'good':''; ?>"><?php echo $gemini_configured?'READY':'SETUP REQUIRED'; ?></span></div>
                   <div><b>Speech-to-Text</b><small>الصوت الوارد</small><span class="mq-status">SETUP REQUIRED</span></div>
                   <div><b>Text-to-Speech</b><small>الصوت الصادر</small><span class="mq-status">SETUP REQUIRED</span></div>
-                  <div><b>WhatsApp AI</b><small>محادثات العملاء</small><span class="mq-status">SETUP REQUIRED</span></div>
                 </div>
               </section>
 
